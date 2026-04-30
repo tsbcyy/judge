@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>专业评委评分系统 | 100分制 | 多人评分 | 可部署GitHub</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 24px 20px;
+            min-height: 100vh;
+        }
+
+        /* 主容器 */
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            background: linear-gradient(120deg, #fbbf24, #ffedd5);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin: 0 0 8px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            border-top: 1px solid #334155;
+            display: inline-block;
+            padding-top: 8px;
+        }
+
+        /* 多选手网格 */
+        .contestants-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* 单个选手卡片 */
+        .contestant-card {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: all 0.2s;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .contestant-header {
+            background: #1e293b;
+            padding: 1rem 1.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 3px solid #fbbf24;
+        }
+
+        .contestant-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .contestant-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            background: #fbbf24;
+            padding: 4px 18px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            color: #0f172a;
+        }
+
+        .contestant-badge {
+            background: #334155;
+            padding: 4px 12px;
+            border-radius: 30px;
+            color: #facc15;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .contestant-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-icon {
+            background: #475569;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .btn-icon.danger {
+            background: #991b1b;
+        }
+
+        .btn-icon.danger:hover {
+            background: #7f1d1d;
+        }
+
+        .btn-icon:hover {
+            background: #fbbf24;
+            color: #0f172a;
+        }
+
+        /* 评委区域 */
+        .judges-section {
+            padding: 1.6rem 1.8rem 1.8rem;
+            background: #f8fafc;
+        }
+
+        .section-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+
+        .judges-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            border-left: 5px solid #fbbf24;
+            padding-left: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .small-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .small-btn.primary {
+            background: #fbbf24;
+            color: #0f172a;
+        }
+
+        .small-btn.primary:hover {
+            background: #eab308;
+        }
+
+        .judges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* 评委卡片 */
+        .judge-card {
+            background: white;
+            border-radius: 1.2rem;
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+
+        .judge-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .judge-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: #f1f5f9;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .remove-judge {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 30px;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-judge:hover {
+            background: #fee2e2;
+        }
+
+        .score-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0 6px;
+        }
+
+        .score-input-wrapper label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .score-input {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 28px;
+            padding: 8px 12px;
+            text-align: center;
+            font-weight: 500;
+            font-family: monospace;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .score-input:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+        }
+
+        .score-input.invalid {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .score-preview {
+            font-size: 0.7rem;
+            text-align: right;
+            color: #2c7da0;
+        }
+
+        /* 选手分数汇总栏 */
+        .contestant-summary {
+            background: #f1f5f9;
+            margin: 0 1.8rem 1.5rem 1.8rem;
+            padding: 14px 20px;
+            border-radius: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+        }
+
+        .final-score-box {
+            background: #0f172a;
+            padding: 6px 20px;
+            border-radius: 40px;
+            color: #facc15;
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+        }
+
+        .detail-stats {
+            font-size: 0.8rem;
+            color: #334155;
+        }
+
+        /* 全局操作栏 */
+        .global-actions {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px;
+            background: #1e293b;
+            padding: 18px 24px;
+            border-radius: 80px;
+            backdrop-filter: blur(4px);
+        }
+
+        .global-btn {
+            background: #fbbf24;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #0f172a;
+        }
+
+        .global-btn.secondary {
+            background: #334155;
+            color: white;
+        }
+
+        .global-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 16px;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 700px) {
+            .contestant-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .final-score-box {
+                font-size: 1.2rem;
+            }
+            .judges-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>🎯 专业评委评分系统 · 100分制 🎯</h1>
+        <div class="subtitle">✨ 支持多位选手 | 动态评委 | 自动去掉最高/最低分后计算平均分 ✨</div>
+    </div>
+
+    <div id="contestantsArea" class="contestants-grid">
+        <!-- 动态生成选手卡片 -->
+    </div>
+
+    <div class="global-actions">
+        <button id="addContestantBtn" class="global-btn">➕ 添加新选手</button>
+        <button id="globalRecalcBtn" class="global-btn">🔄 重新计算所有选手得分</button>
+        <button id="resetDemoBtn" class="global-btn secondary">📋 重置演示数据</button>
+    </div>
+    <footer>
+        💡 评分规则：每位选手的最终得分 = 去掉所有评委中的一个最高分和一个最低分后，剩余评分的算术平均值 (满分100分)。<br>
+        ✅ 支持动态增删评委/选手，所有数据实时计算，适配 GitHub Pages 部署。
+    </footer>
+</div>
+
+<script>
+    // ---------- 数据结构 ----------
+    // 每个选手: { id, name, judges: [{ judgeId, judgeName, scoreStr }] }
+    // 全局评委ID生成采用独立计数器 (选手内部评委独立，但为了便于管理评委名称，每个选手维护自己的评委列表)
+    // 为了灵活性并且符合“多人评分”，每个选手独立拥有一组评委 (不同选手可以有不同评委阵容，也支持为每个选手单独增删评委)
+    // 这样更符合实际场景: 不同比赛单元评委可能不同。但也可以通过统一评委组实现，为更直观就采用选手独立评委组。
+    
+    let contestants = [];
+    let nextContestantId = 1;
+    let nextJudgeGlobalId = 100; // 内部辅助生成唯一评委id
+    
+    // 演示默认数据：3位选手，每位选手有4-5位评委
+    const DEFAULT_DATA = {
+        contestants: [
+            { name: "选手 01 · 林悦", judges: [
+                { judgeName: "声乐专家", score: "92.5" },
+                { judgeName: "舞蹈导师", score: "88.0" },
+                { judgeName: "艺术总监", score: "94.0" },
+                { judgeName: "媒体评审", score: "89.5" }
+            ]},
+            { name: "选手 02 · 陈曦", judges: [
+                { judgeName: "声乐专家", score: "95.0" },
+                { judgeName: "舞蹈导师", score: "91.5" },
+                { judgeName: "艺术总监", score: "87.0" },
+                { judgeName: "媒体评审", score: "93.0" },
+                { judgeName: "特邀嘉宾", score: "94.5" }
+            ]},
+            { name: "选手 03 · 周若彤", judges: [
+                { judgeName: "声乐专家", score: "88.5" },
+                { judgeName: "舞蹈导师", score: "92.0" },
+                { judgeName: "艺术总监", score: "90.0" },
+                { judgeName: "媒体评审", score: "86.5" }
+            ]}
+        ]
+    };
+    
+    // 辅助: 校验分数 0-100 允许小数 (最多两位)
+    function isValidScore(scoreStr) {
+        if (scoreStr === null || scoreStr === undefined || scoreStr === "") return false;
+        const num = parseFloat(scoreStr);
+        if (isNaN(num)) return false;
+        return num >= 0 && num <= 100;
+    }
+    
+    function parseScoreSafe(scoreStr) {
+        if (!isValidScore(scoreStr)) return null;
+        return parseFloat(scoreStr);
+    }
+    
+    // 核心计算：给定评委分数数组 [{scoreStr, judgeName}]，返回 {finalAvg, maxScore, minScore, validCount, totalSum, removedLowVal, removedHighVal, usedCount}
+    function computeStatisticsForContestant(judgesArray) {
+        // 提取有效分数数值列表，保留原始值
+        let validScores = [];
+        for (let j of judgesArray) {
+            const num = parseScoreSafe(j.score);
+            if (num !== null) {
+                validScores.push({ val: num, name: j.judgeName });
+            }
+        }
+        if (validScores.length === 0) {
+            return { finalAvg: null, maxScore: null, minScore: null, validCount: 0, totalSum: 0, removedLow: null, removedHigh: null, usedCount: 0 };
+        }
+        // 按分数排序
+        const sorted = [...validScores].sort((a,b) => a.val - b.val);
+        let finalList = [];
+        let removedLow = null, removedHigh = null;
+        if (validScores.length === 1) {
+            finalList = [sorted[0]];
+        } else if (validScores.length === 2) {
+            finalList = [sorted[0], sorted[1]];
+        } else {
+            removedLow = sorted[0];
+            removedHigh = sorted[sorted.length-1];
+            finalList = sorted.slice(1, sorted.length-1);
+        }
+        let total = 0;
+        for (let item of finalList) total += item.val;
+        const usedCount = finalList.length;
+        const avg = usedCount > 0 ? total / usedCount : null;
+        const maxAll = Math.max(...validScores.map(v=>v.val));
+        const minAll = Math.min(...validScores.map(v=>v.val));
+        return {
+            finalAvg: avg,
+            maxScore: maxAll,
+            minScore: minAll,
+            validCount: validScores.length,
+            totalSum: total,
+            removedLow: removedLow ? removedLow.val : null,
+            removedHigh: removedHigh ? removedHigh.val : null,
+            usedCount: usedCount,
+            finalTotal: total
+        };
+    }
+    
+    // 渲染整个界面
+    function renderAll() {
+        const container = document.getElementById('contestantsArea');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let idx = 0; idx < contestants.length; idx++) {
+            const c = contestants[idx];
+            const stats = computeStatisticsForContestant(c.judges);
+            const finalScoreText = (stats.finalAvg !== null) ? stats.finalAvg.toFixed(2) : "暂无有效评分";
+            
+            // 选手卡片主容器
+            const card = document.createElement('div');
+            card.className = 'contestant-card';
+            card.dataset.id = c.id;
+            
+            // 头部
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'contestant-header';
+            headerDiv.innerHTML = `
+                <div class="contestant-name-wrapper">
+                    <div class="contestant-name" contenteditable="true" data-field="name" data-id="${c.id}">${escapeHtml(c.name)}</div>
+                    <div class="contestant-badge">🎤 选手 ID: ${c.id}</div>
+                </div>
+                <div class="contestant-actions">
+                    <button class="btn-icon add-judge-to-contestant" data-id="${c.id}">➕ 添加评委</button>
+                    <button class="btn-icon danger remove-contestant" data-id="${c.id}">🗑️ 删除选手</button>
+                </div>
+            `;
+            
+            // 评委列表区域
+            const judgesSection = document.createElement('div');
+            judgesSection.className = 'judges-section';
+            
+            const toolbar = document.createElement('div');
+            toolbar.className = 'section-toolbar';
+            toolbar.innerHTML = `
+                <div class="judges-title">👩‍⚖️ 评委评分表 (满分100分)</div>
+                <div class="button-group">
+                    <button class="small-btn add-judge-to-contestant" data-id="${c.id}">+ 评委</button>
+                </div>
+            `;
+            
+            const judgesGrid = document.createElement('div');
+            judgesGrid.className = 'judges-grid';
+            // 循环该选手的所有评委
+            c.judges.forEach((judge, jIdx) => {
+                const judgeCard = document.createElement('div');
+                judgeCard.className = 'judge-card';
+                const isValid = isValidScore(judge.score);
+                judgeCard.innerHTML = `
+                    <div class="judge-card-header">
+                        <span class="judge-name" contenteditable="true" data-judgeidx="${jIdx}" data-contid="${c.id}" data-field="judgeName">${escapeHtml(judge.judgeName)}</span>
+                        <button class="remove-judge" data-contid="${c.id}" data-judgeidx="${jIdx}">✖</button>
+                    </div>
+                    <div class="score-input-wrapper">
+                        <label>分数:</label>
+                        <input type="text" class="score-input ${!isValid && judge.score ? 'invalid' : ''}" value="${escapeHtml(judge.score)}" placeholder="0~100" data-contid="${c.id}" data-judgeidx="${jIdx}" data-field="score">
+                    </div>
+                    <div class="score-preview">${isValid ? `✓ ${parseFloat(judge.score).toFixed(2)} 分` : (judge.score ? '❌ 无效(0~100)' : '请输入分数')}</div>
+                `;
+                judgesGrid.appendChild(judgeCard);
+            });
+            
+            judgesSection.appendChild(toolbar);
+            judgesSection.appendChild(judgesGrid);
+            
+            // 成绩汇总栏
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'contestant-summary';
+            const detailInfo = stats.validCount > 0 ? 
+                `🔍 有效评委: ${stats.validCount}人 | 最高: ${stats.maxScore?.toFixed(2) ?? '-'} | 最低: ${stats.minScore?.toFixed(2) ?? '-'} | 剔除后: ${stats.usedCount}个评分` : 
+                `暂无有效评分`;
+            summaryDiv.innerHTML = `
+                <div class="detail-stats">${detailInfo}</div>
+                <div class="final-score-box">
+                    🏆 最终得分: <span class="contestant-final-score" data-id="${c.id}">${finalScoreText}</span>
+                </div>
+                <button class="small-btn primary recalc-single" data-id="${c.id}">🔄 重算本选手</button>
+            `;
+            
+            card.appendChild(headerDiv);
+            card.appendChild(judgesSection);
+            card.appendChild(summaryDiv);
+            container.appendChild(card);
+        }
+        
+        // 绑定所有选手内部动态事件 (事件委托方式已经在全局监听，但为了防止内存，直接在容器上做监听)
+        attachGlobalEvents();
+    }
+    
+    // 转义简单XSS
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // 全局事件委托 (因为动态渲染)
+    function attachGlobalEvents() {
+        const container = document.getElementById('contestantsArea');
+        if (!container) return;
+        
+        // 移除旧监听避免重复，但是新替换内嵌直接使用委托
+        container.removeEventListener('input', handleInputChange);
+        container.removeEventListener('blur', handleBlurEdit, true);
+        container.removeEventListener('click', handleClickActions);
+        container.addEventListener('input', handleInputChange);
+        container.addEventListener('blur', handleBlurEdit, true);
+        container.addEventListener('click', handleClickActions);
+    }
+    
+    function handleInputChange(e) {
+        const target = e.target;
+        if (target.classList && target.classList.contains('score-input')) {
+            const contId = parseInt(target.dataset.contid);
+            const judgeIdx = parseInt(target.dataset.judgeidx);
+            const newVal = target.value;
+            const contestant = contestants.find(c => c.id === contId);
+            if (contestant && contestant.judges[judgeIdx]) {
+                contestant.judges[judgeIdx].score = newVal;
+                // 立即重新计算并更新当前选手显示区域（局部刷新）
+                refreshSingleContestantUI(contId);
+            }
+        }
+    }
+    
+    function handleBlurEdit(e) {
+        const target = e.target;
+        // 处理选手姓名可编辑
+        if (target.classList && target.classList.contains('contestant-name') && target.isContentEditable) {
+            const contId = parseInt(target.dataset.id);
+            const newName = target.innerText.trim();
+            if (contId && newName) {
+                const contestant = contestants.find(c => c.id === contId);
+                if (contestant) contestant.name = newName;
+                refreshSingleContestantUI(contId);
+            }
+        }
+        // 处理评委姓名可编辑
+        if (target.classList && target.classList.contains('judge-name') && target.isContentEditable) {
+            const contId = parseInt(target.dataset.contid);
+            const judgeIdx = parseInt(target.dataset.judgeidx);
+            const newJudgeName = target.innerText.trim();
+            if (contId && !isNaN(judgeIdx)) {
+                const contestant = contestants.find(c => c.id === contId);
+                if (contestant && contestant.judges[judgeIdx]) {
+                    contestant.judges[judgeIdx].judgeName = newJudgeName || `评委${judgeIdx+1}`;
+                    refreshSingleContestantUI(contId);
+                }
+            }
+        }
+    }
+    
+    function handleClickActions(e) {
+        const target = e.target;
+        // 添加评委 (两种按钮公用一个类)
+        if (target.classList.contains('add-judge-to-contestant')) {
+            const contId = parseInt(target.dataset.id);
+            const contestant = contestants.find(c => c.id === contId);
+            if (contestant) {
+                const newJudgeName = `评委${contestant.judges.length+1}`;
+                contestant.judges.push({
+                    judgeName: newJudgeName,
+                    score: "85.0"
+                });
+                refreshSingleContestantUI(contId);
+            }
+            e.preventDefault();
+        }
+        // 删除评委
+        if (target.classList.contains('remove-judge')) {
+            const contId = parseInt(target.dataset.contid);
+            const judgeIdx = parseInt(target.dataset.judgeidx);
+            const contestant = contestants.find(c => c.id === contId);
+            if (contestant && contestant.judges.length > 1) {
+                contestant.judges.splice(judgeIdx, 1);
+                refreshSingleContestantUI(contId);
+            } else if (contestant && contestant.judges.length <= 1) {
+                alert("每个选手至少需要保留1位评委！");
+            }
+            e.preventDefault();
+        }
+        // 删除选手
+        if (target.classList.contains('remove-contestant')) {
+            const contId = parseInt(target.dataset.id);
+            if (contestants.length <= 1) {
+                alert("至少保留一名选手");
+                return;
+            }
+            contestants = contestants.filter(c => c.id !== contId);
+            renderAll();
+            e.preventDefault();
+        }
+        // 重算单个选手
+        if (target.classList.contains('recalc-single')) {
+            const contId = parseInt(target.dataset.id);
+            refreshSingleContestantUI(contId);
+            e.preventDefault();
+        }
+        // 全局重算按钮已经在外部监听，但为了统一，外部单独绑定
+    }
+    
+    // 刷新单个选手UI
+    function refreshSingleContestantUI(contestantId) {
+        // 重新渲染整个页面保持一致性 (性能足够, 结构清晰)
+        renderAll();
+        // 可选加入高亮动画
+        const cards = document.querySelectorAll('.contestant-card');
+        for(let card of cards) {
+            if(card.dataset.id == contestantId) {
+                card.style.transition = '0.2s';
+                card.style.boxShadow = '0 0 0 2px #fbbf24';
+                setTimeout(() => { card.style.boxShadow = ''; }, 600);
+                break;
+            }
+        }
+    }
+    
+    // 全局重新计算所有选手得分 (其实就是刷新UI调用renderAll)
+    function recalcAll() {
+        renderAll();
+    }
+    
+    // 添加选手
+    function addContestant() {
+        const newId = nextContestantId++;
+        const defaultJudges = [
+            { judgeName: "评委 A", score: "80.0" },
+            { judgeName: "评委 B", score: "85.0" }
+        ];
+        contestants.push({
+            id: newId,
+            name: `新选手 ${newId}`,
+            judges: defaultJudges
+        });
+        renderAll();
+    }
+    
+    // 重置演示数据
+    function resetDemoData() {
+        contestants = [];
+        nextContestantId = 1;
+        for (let demo of DEFAULT_DATA.contestants) {
+            const judgesArr = demo.judges.map(j => ({ judgeName: j.judgeName, score: j.score.toString() }));
+            contestants.push({
+                id: nextContestantId++,
+                name: demo.name,
+                judges: judgesArr
+            });
+        }
+        renderAll();
+    }
+    
+    // 初始化额外全局按钮监听
+    function bindGlobalButtons() {
+        document.getElementById('addContestantBtn').addEventListener('click', addContestant);
+        document.getElementById('globalRecalcBtn').addEventListener('click', recalcAll);
+        document.getElementById('resetDemoBtn').addEventListener('click', resetDemoData);
+    }
+    
+    // 启动应用
+    function init() {
+        resetDemoData(); // 填充演示数据
+        bindGlobalButtons();
+    }
+    
+    init();
+</script>
+</body>
+</html>
