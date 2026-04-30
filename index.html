@@ -364,8 +364,8 @@
 <body>
 <div class="app-container">
     <div class="header">
-        <h1>🎯 专业评委评分系统 · 100分制 🎯</h1>
-        <div class="subtitle">✨ 支持多位选手 | 动态评委 | 自动去掉最高/最低分后计算平均分 ✨</div>
+        <h1>评委评分系统</h1>
+        <div class="subtitle">欢迎登陆本界面</div>
     </div>
 
     <div id="contestantsArea" class="contestants-grid">
@@ -373,13 +373,13 @@
     </div>
 
     <div class="global-actions">
-        <button id="addContestantBtn" class="global-btn">➕ 添加新选手</button>
-        <button id="globalRecalcBtn" class="global-btn">🔄 重新计算所有选手得分</button>
-        <button id="resetDemoBtn" class="global-btn secondary">📋 重置演示数据</button>
+        <button id="addContestantBtn" class="global-btn">添加新选手</button>
+        <button id="globalRecalcBtn" class="global-btn"> 重新计算所有选手得分</button>
+        <button id="resetDemoBtn" class="global-btn secondary"> 重置演示数据</button>
     </div>
     <footer>
-        💡 评分规则：每位选手的最终得分 = 去掉所有评委中的一个最高分和一个最低分后，剩余评分的算术平均值 (满分100分)。<br>
-        ✅ 支持动态增删评委/选手，所有数据实时计算，适配 GitHub Pages 部署。
+         评分规则：每位选手的最终得分 = 去掉所有评委中的一个最高分和一个最低分后，剩余评分的算术平均值 (满分100分)。<br>
+         支持动态增删评委/选手，所有数据实时计算，适配 GitHub Pages 部署。
     </footer>
 </div>
 
@@ -397,24 +397,24 @@
     // 演示默认数据：3位选手，每位选手有4-5位评委
     const DEFAULT_DATA = {
         contestants: [
-            { name: "选手 01 · 林悦", judges: [
-                { judgeName: "声乐专家", score: "92.5" },
-                { judgeName: "舞蹈导师", score: "88.0" },
-                { judgeName: "艺术总监", score: "94.0" },
-                { judgeName: "媒体评审", score: "89.5" }
+            { name: "选手 01 · 张三", judges: [
+                { judgeName: "评委一", score: "92.5" },
+                { judgeName: "评委二", score: "88.0" },
+                { judgeName: "评委三", score: "94.0" },
+                { judgeName: "评委四", score: "89.5" }
             ]},
-            { name: "选手 02 · 陈曦", judges: [
-                { judgeName: "声乐专家", score: "95.0" },
-                { judgeName: "舞蹈导师", score: "91.5" },
-                { judgeName: "艺术总监", score: "87.0" },
-                { judgeName: "媒体评审", score: "93.0" },
-                { judgeName: "特邀嘉宾", score: "94.5" }
+            { name: "选手 02 · 李四", judges: [
+                { judgeName: "评委一", score: "95.0" },
+                { judgeName: "评委二", score: "91.5" },
+                { judgeName: "评委三", score: "87.0" },
+                { judgeName: "评委四", score: "93.0" },
+                { judgeName: "评委五", score: "94.5" }
             ]},
-            { name: "选手 03 · 周若彤", judges: [
-                { judgeName: "声乐专家", score: "88.5" },
-                { judgeName: "舞蹈导师", score: "92.0" },
-                { judgeName: "艺术总监", score: "90.0" },
-                { judgeName: "媒体评审", score: "86.5" }
+            { name: "选手 03 · 王五", judges: [
+                { judgeName: "评委一", score: "88.5" },
+                { judgeName: "评委二", score: "92.0" },
+                { judgeName: "评委三", score: "90.0" },
+                { judgeName: "评委四", score: "86.5" }
             ]}
         ]
     };
