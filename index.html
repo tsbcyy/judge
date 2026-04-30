@@ -3,295 +3,442 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
-  <title>智能加权评分 · WPS表单链接</title>
+  <title>智能加权评分系统</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+    
     body {
-      background: linear-gradient(145deg, #0b1721 0%, #1b2a3a 100%);
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      padding: 12px 10px;
+      background: #f0f2f5;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 16px 12px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
     }
+    
     .app-container {
-      max-width: 1100px;
+      max-width: 1000px;
       width: 100%;
       margin: 0 auto;
     }
+    
     .header {
       text-align: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
+    
     .header h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      background: linear-gradient(to right, #fcd34d, #fde68a);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0;
     }
+    
     .subtitle {
-      color: #9ca3af;
+      color: #64748b;
       font-size: 0.7rem;
       margin-top: 2px;
-      border-top: 1px solid #334155;
-      display: inline-block;
-      padding-top: 4px;
     }
+    
+    /* 权重控制栏 - 更简洁 */
     .weight-config-bar {
-      background: rgba(30, 41, 59, 0.9);
-      backdrop-filter: blur(6px);
-      border-radius: 40px;
+      background: white;
+      border-radius: 8px;
       padding: 8px 14px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       font-size: 0.8rem;
     }
+    
     .weight-item {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #0f172a;
-      padding: 4px 12px;
-      border-radius: 30px;
-      color: #facc15;
     }
+    
     .weight-item label {
-      font-weight: 600;
+      font-weight: 500;
       font-size: 0.7rem;
+      color: #475569;
       white-space: nowrap;
     }
+    
     .weight-input {
-      width: 58px;
-      background: #1f2a3a;
-      border: 1px solid #fbbf24;
-      border-radius: 20px;
+      width: 60px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
       padding: 4px 6px;
       text-align: center;
-      color: white;
-      font-weight: 700;
+      font-weight: 500;
       font-size: 0.8rem;
+      color: #1e293b;
     }
+    
     .apply-weight-btn {
-      background: #eab308;
+      background: #3b82f6;
+      color: white;
       border: none;
       padding: 5px 16px;
-      border-radius: 24px;
-      font-weight: 700;
+      border-radius: 6px;
+      font-weight: 500;
       font-size: 0.7rem;
       cursor: pointer;
-      color: #0f172a;
+      transition: 0.2s;
     }
+    
+    .apply-weight-btn:hover {
+      background: #2563eb;
+    }
+    
     .contestants-grid {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
+    
     .contestant-card {
-      background: rgba(255, 255, 255, 0.96);
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
       overflow: hidden;
-      border: 1px solid rgba(251, 191, 36, 0.25);
-      font-size: 0.8rem;
+      border: 1px solid #e2e8f0;
+      font-size: 0.75rem;
     }
+    
     .contestant-header {
-      background: #1e293b;
-      padding: 0.35rem 0.8rem;
+      background: #f8fafc;
+      padding: 8px 12px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 6px;
-      border-bottom: 1.5px solid #fbbf24;
+      gap: 8px;
+      border-bottom: 1px solid #e2e8f0;
     }
+    
+    .contestant-name-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
     .contestant-name {
-      font-size: 0.9rem;
-      font-weight: 700;
-      background: #fbbf24;
-      padding: 2px 12px;
-      border-radius: 24px;
-      color: #0f172a;
-      outline: none;
-    }
-    .contestant-badge {
-      background: #334155;
-      padding: 2px 8px;
-      border-radius: 18px;
-      color: #facc15;
-      font-size: 0.65rem;
-    }
-    .btn-icon {
-      background: #475569;
-      border: none;
-      color: white;
-      padding: 2px 10px;
-      border-radius: 20px;
+      font-size: 0.85rem;
       font-weight: 600;
+      color: #1e293b;
+      padding: 2px 8px;
+      background: #f1f5f9;
+      border-radius: 4px;
+      outline: none;
+      min-width: 80px;
+    }
+    
+    .contestant-badge {
+      color: #64748b;
+      font-size: 0.7rem;
+    }
+    
+    .contestant-actions {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .btn-icon {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-weight: 500;
       cursor: pointer;
       font-size: 0.65rem;
+      color: #475569;
     }
-    .btn-icon.danger { background: #991b1b; }
+    
+    .btn-icon.danger {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+    
+    .btn-icon:hover {
+      background: #e2e8f0;
+    }
+    
     .judges-section {
-      padding: 0.5rem 0.7rem 0.2rem;
-      background: #f9fafb;
+      padding: 8px 12px;
+      background: white;
     }
+    
+    .section-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    
     .judges-title {
       font-size: 0.7rem;
-      font-weight: 700;
-      border-left: 3px solid #fbbf24;
-      padding-left: 8px;
+      font-weight: 600;
+      color: #475569;
     }
+    
+    .small-btn {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 0.6rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: #475569;
+    }
+    
+    .small-btn.primary {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+    
     .judges-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       gap: 6px;
-      margin: 6px 0;
+      margin-bottom: 6px;
     }
+    
     .judge-card {
-      background: white;
-      border-radius: 0.7rem;
-      padding: 4px 6px;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 5px 7px;
       border: 1px solid #e2e8f0;
     }
-    .judge-name {
-      font-weight: 700;
-      font-size: 0.6rem;
-      background: #f1f5f9;
-      padding: 1px 6px;
-      border-radius: 14px;
+    
+    .judge-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
     }
+    
+    .judge-name {
+      font-weight: 500;
+      font-size: 0.6rem;
+      color: #475569;
+    }
+    
+    .remove-judge {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    
     .score-input {
       width: 100%;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 2px 4px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 2px 5px;
       text-align: center;
+      font-family: monospace;
       font-size: 0.65rem;
+      background: white;
     }
+    
+    .score-input.invalid {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+    
     .collect-link-section {
-      background: #f1f5f9;
-      margin: 0 0.6rem 0.4rem;
-      padding: 6px 10px;
-      border-radius: 20px;
+      background: #f8fafc;
+      margin: 0 12px 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
-      border: 1px dashed #cbd5e1;
+      gap: 8px;
+      border: 1px solid #e2e8f0;
       font-size: 0.65rem;
     }
+    
+    .link-label {
+      font-weight: 500;
+      color: #475569;
+      white-space: nowrap;
+    }
+    
+    .link-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 2;
+      min-width: 200px;
+    }
+    
     .collect-url-input {
       flex: 2;
-      border: 2px solid #cbd5e1;
-      border-radius: 18px;
-      padding: 4px 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 5px 8px;
       font-size: 0.6rem;
       background: white;
     }
+    
+    /* 新增列名输入框 */
+    .column-input {
+      width: 100px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 0.6rem;
+      background: white;
+    }
+    
     .fetch-btn {
-      background: #2563eb;
+      background: #3b82f6;
       border: none;
-      border-radius: 18px;
-      padding: 3px 10px;
+      border-radius: 4px;
+      padding: 4px 12px;
       color: white;
-      font-weight: bold;
+      font-weight: 500;
       font-size: 0.6rem;
       cursor: pointer;
+      white-space: nowrap;
     }
-    /* 更简洁的平均分汇总条 */
+    
+    .fetch-btn:hover {
+      background: #2563eb;
+    }
+    
+    .collect-avg-preview {
+      font-size: 0.65rem;
+      color: #475569;
+      white-space: nowrap;
+      background: #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    
     .contestant-summary {
-      background: #ffffffec;
-      margin: 0 0.6rem 0.5rem;
-      padding: 4px 10px;
-      border-radius: 22px;
+      background: #f8fafc;
+      margin: 0 12px 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
       border: 1px solid #e2e8f0;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
     }
+    
     .final-score-box {
-      background: #0f172a;
-      padding: 2px 12px;
-      border-radius: 20px;
-      color: #facc15;
-      font-weight: 800;
-      font-size: 0.8rem;
+      background: #1e293b;
+      padding: 2px 10px;
+      border-radius: 4px;
+      color: white;
+      font-weight: 600;
+      font-size: 0.75rem;
     }
+    
     .global-actions {
       margin-top: 14px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 8px;
-      background: #1e293b;
-      padding: 8px 12px;
-      border-radius: 34px;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
+    
     .global-btn {
-      background: #fbbf24;
+      background: #3b82f6;
+      color: white;
       border: none;
-      padding: 4px 14px;
-      border-radius: 22px;
-      font-weight: 700;
-      font-size: 0.65rem;
+      padding: 5px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.7rem;
       cursor: pointer;
+      transition: 0.2s;
     }
+    
+    .global-btn.secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .global-btn:hover {
+      opacity: 0.9;
+    }
+    
     footer {
       text-align: center;
       margin-top: 14px;
-      color: #64748b;
+      color: #94a3b8;
       font-size: 0.6rem;
+    }
+    
+    @media (max-width: 650px) {
+      .judges-grid {
+        grid-template-columns: 1fr;
+      }
+      .collect-link-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
 <body>
 <div class="app-container">
   <div class="header">
-    <h1>⚖️ 智能加权评分 · WPS表单</h1>
-    <div class="subtitle">🔗 支持 f.kdocs.cn/ksform 真实收集表链接</div>
+    <h1>智能加权评分系统</h1>
+    <div class="subtitle">支持WPS文档 · 指定列读取 · 动态权重</div>
   </div>
 
   <div class="weight-config-bar">
     <div class="weight-item">
-      <label>👩‍⚖️ 评委权重</label>
+      <label>评委权重</label>
       <input type="number" id="judgeWeightInput" class="weight-input" step="5" min="0" max="100" value="60">
-      <span class="weight-unit">%</span>
+      <span style="font-size:0.7rem;color:#64748b">%</span>
     </div>
     <div class="weight-item">
-      <label>📊 收集表权重</label>
+      <label>收集表权重</label>
       <input type="number" id="collectWeightInput" class="weight-input" step="5" min="0" max="100" value="40">
-      <span class="weight-unit">%</span>
+      <span style="font-size:0.7rem;color:#64748b">%</span>
     </div>
-    <button id="applyWeightBtn" class="apply-weight-btn">应用 & 重算</button>
+    <button id="applyWeightBtn" class="apply-weight-btn">应用权重</button>
   </div>
 
   <div id="contestantsArea" class="contestants-grid"></div>
 
   <div class="global-actions">
-    <button id="addContestantBtn" class="global-btn">➕ 新选手</button>
-    <button id="globalRecalcBtn" class="global-btn">🔄 全部重算</button>
-    <button id="resetDemoBtn" class="global-btn secondary">📋 重置示例</button>
+    <button id="addContestantBtn" class="global-btn">添加选手</button>
+    <button id="globalRecalcBtn" class="global-btn">重新计算</button>
+    <button id="resetDemoBtn" class="global-btn secondary">重置演示</button>
   </div>
   <footer>
-    💡 支持WPS表单分享链接 (如 f.kdocs.cn/ksform/...)，自动解析数值列计算平均分。
+    支持WPS在线文档，输入列名即可读取指定列数据
   </footer>
 </div>
 
@@ -302,12 +449,13 @@
     let judgeWeight = 60;
     let collectWeight = 40;
 
-    // 演示数据中使用真实的WPS表单链接格式
+    // 演示数据，使用您提供的WPS文档链接
     const DEMO = {
       contestants: [
         {
-          name: "选手 01 · 林悦",
-          collectUrl: "https://f.kdocs.cn/ksform/h/write/ROh2Dp4W/",  // 您提供的真实WPS链接
+          name: "选手01",
+          collectUrl: "https://www.kdocs.cn/l/cbqXhNWQkv0G",
+          collectColumn: "请输入数字", // 指定列名
           manualCollectAvg: null,
           judges: [
             { judgeName: "评委1", score: "92.5" },
@@ -316,12 +464,14 @@
           ]
         },
         {
-          name: "选手 02 · 陈曦",
-          collectUrl: "https://f.kdocs.cn/ksform/h/write/AnotherExample",
+          name: "选手02",
+          collectUrl: "",
+          collectColumn: "分数",
           manualCollectAvg: 91.0,
           judges: [
             { judgeName: "评委1", score: "95.0" },
-            { judgeName: "评委2", score: "91.5" }
+            { judgeName: "评委2", score: "91.5" },
+            { judgeName: "评委3", score: "89.0" }
           ]
         }
       ]
@@ -331,16 +481,22 @@
       const num = parseFloat(val);
       return !isNaN(num) && num >= 0 && num <= 100;
     };
+    
     const parseScore = (val) => isValidScore(val) ? parseFloat(val) : null;
+    
     const computeJudgeAvg = (judges) => {
       const valid = judges.map(j => parseScore(j.score)).filter(s => s !== null);
       return valid.length ? valid.reduce((a,b) => a+b, 0) / valid.length : null;
     };
+    
     const getCollectAvg = (c) => {
-      if (c.fetchedAvg !== undefined && c.fetchedAvg !== null && !isNaN(c.fetchedAvg)) return Math.min(100, Math.max(0, c.fetchedAvg));
-      if (c.manualCollectAvg !== undefined && c.manualCollectAvg !== null) return Math.min(100, Math.max(0, parseFloat(c.manualCollectAvg)));
+      if (c.fetchedAvg !== undefined && c.fetchedAvg !== null && !isNaN(c.fetchedAvg)) 
+        return Math.min(100, Math.max(0, c.fetchedAvg));
+      if (c.manualCollectAvg !== undefined && c.manualCollectAvg !== null) 
+        return Math.min(100, Math.max(0, parseFloat(c.manualCollectAvg)));
       return null;
     };
+    
     const computeFinal = (c) => {
       const jAvg = computeJudgeAvg(c.judges);
       const cAvg = getCollectAvg(c);
@@ -350,6 +506,7 @@
       if (cAvg !== null) { score += cAvg * (collectWeight / total); valid = true; }
       return valid ? score : null;
     };
+    
     const sortContestants = () => {
       contestants.sort((a,b) => {
         const sa = computeFinal(a); const sb = computeFinal(b);
@@ -359,49 +516,150 @@
       });
     };
 
-    const fetchCollectData = async (url) => {
-      if (!url || !url.trim()) return null;
+    // 新增：从WPS文档中提取指定列的数据
+    const fetchColumnData = async (url, columnName) => {
+      if (!url || !url.trim() || !columnName || !columnName.trim()) return null;
+      
       try {
-        const resp = await fetch(url, { mode: 'cors', cache: 'no-cache' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const text = await resp.text();
-        let numbers = [];
-        if (url.includes('.json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
-          try {
-            const json = JSON.parse(text);
-            const extract = (obj, arr) => {
-              if (obj === null) return;
-              if (typeof obj === 'number' && isFinite(obj)) arr.push(obj);
-              else if (Array.isArray(obj)) obj.forEach(i => extract(i, arr));
-              else if (typeof obj === 'object') Object.values(obj).forEach(v => extract(v, arr));
-            };
-            extract(json, numbers);
-          } catch (e) {}
+        // 对于WPS在线文档，尝试通过导出为CSV的方式获取数据
+        let csvUrl = url;
+        
+        // 如果链接包含 /l/ 格式，尝试转换为导出链接
+        if (url.includes('/l/')) {
+          csvUrl = url.replace(/\/l\//, '/export/csv/') + '?format=csv';
         }
-        if (numbers.length === 0) {
-          const lines = text.split(/\r?\n/);
-          for (let line of lines) {
-            const cells = line.split(/[,\t;|]+/);
-            for (let cell of cells) {
-              const num = parseFloat(cell.replace(/[^\d.-]/g, ''));
-              if (!isNaN(num) && isFinite(num)) numbers.push(num);
+        
+        const resp = await fetch(csvUrl, { mode: 'cors', cache: 'no-cache' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        
+        const text = await resp.text();
+        const lines = text.split(/\r?\n/);
+        
+        if (lines.length < 2) return null;
+        
+        // 解析CSV头部
+        const headers = parseCSVLine(lines[0]);
+        let columnIndex = -1;
+        
+        // 查找指定列名
+        for (let i = 0; i < headers.length; i++) {
+          if (headers[i].trim() === columnName.trim()) {
+            columnIndex = i;
+            break;
+          }
+        }
+        
+        if (columnIndex === -1) return null;
+        
+        // 提取该列的所有数值
+        const numbers = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (lines[i].trim()) {
+            const cells = parseCSVLine(lines[i]);
+            if (cells.length > columnIndex) {
+              const num = parseFloat(cells[columnIndex].replace(/[^\d.-]/g, ''));
+              if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
+                numbers.push(num);
+              }
             }
           }
         }
+        
         if (numbers.length === 0) return null;
         return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
+        
       } catch (err) {
-        console.warn('获取失败', err);
+        console.warn('获取失败:', err);
+        // 备选方案：尝试直接获取并解析HTML
+        try {
+          const resp = await fetch(url, { mode: 'cors', cache: 'no-cache' });
+          const text = await resp.text();
+          const numbers = extractNumbersFromHTML(text, columnName);
+          if (numbers.length > 0) {
+            return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
+          }
+        } catch (e) {
+          console.warn('备选方案也失败:', e);
+        }
         return null;
       }
     };
+    
+    // 解析CSV行（处理引号内的逗号）
+    const parseCSVLine = (line) => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    };
+    
+    // 从HTML中提取表格数据
+    const extractNumbersFromHTML = (html, columnName) => {
+      const numbers = [];
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const tables = doc.querySelectorAll('table');
+      
+      tables.forEach(table => {
+        const headers = table.querySelectorAll('th');
+        let columnIndex = -1;
+        
+        headers.forEach((th, index) => {
+          if (th.textContent.trim() === columnName.trim()) {
+            columnIndex = index;
+          }
+        });
+        
+        if (columnIndex !== -1) {
+          const rows = table.querySelectorAll('tr');
+          rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > columnIndex) {
+              const num = parseFloat(cells[columnIndex].textContent.replace(/[^\d.-]/g, ''));
+              if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
+                numbers.push(num);
+              }
+            }
+          });
+        }
+      });
+      
+      return numbers;
+    };
 
     const refreshCollect = async (c, showMsg) => {
-      if (!c.collectUrl?.trim()) { alert('请填写WPS表单链接'); return; }
-      c.fetching = true; renderAll();
-      const avg = await fetchCollectData(c.collectUrl);
-      c.fetching = false; c.fetchedAvg = avg;
-      if (showMsg) alert(avg !== null ? `✅ 平均分：${avg.toFixed(2)}` : '❌ 获取失败');
+      if (!c.collectUrl?.trim()) { 
+        if (showMsg) alert('请填写WPS文档链接');
+        return; 
+      }
+      if (!c.collectColumn?.trim()) {
+        if (showMsg) alert('请填写要读取的列名');
+        return;
+      }
+      
+      c.fetching = true; 
+      renderAll();
+      
+      const avg = await fetchColumnData(c.collectUrl, c.collectColumn);
+      c.fetching = false; 
+      c.fetchedAvg = avg;
+      
+      if (showMsg) {
+        alert(avg !== null ? `成功读取"${c.collectColumn}"列，平均分：${avg.toFixed(2)}` : `未找到"${c.collectColumn}"列或数据格式错误`);
+      }
       renderAll();
     };
 
@@ -409,98 +667,173 @@
       sortContestants();
       const area = document.getElementById('contestantsArea');
       area.innerHTML = '';
+      
       contestants.forEach((c, idx) => {
         const jAvg = computeJudgeAvg(c.judges);
         const cAvg = getCollectAvg(c);
         const final = computeFinal(c);
-        const rank = idx+1;
-        const medal = rank===1?'🥇':(rank===2?'🥈':(rank===3?'🥉':`${rank}.`));
+        const rank = idx + 1;
+        
         const card = document.createElement('div');
         card.className = 'contestant-card';
+        
         card.innerHTML = `
           <div class="contestant-header">
-            <span class="contestant-name" contenteditable data-id="${c.id}">${escapeHtml(c.name)}</span>
-            <span class="contestant-badge">${medal}</span>
-            <div><button class="btn-icon add-judge" data-id="${c.id}">➕评委</button><button class="btn-icon danger remove-ct" data-id="${c.id}">🗑️</button></div>
+            <div class="contestant-name-wrapper">
+              <span class="contestant-name" contenteditable data-id="${c.id}">${escapeHtml(c.name)}</span>
+              <span class="contestant-badge">第${rank}名</span>
+            </div>
+            <div class="contestant-actions">
+              <button class="btn-icon add-judge" data-id="${c.id}">添加评委</button>
+              <button class="btn-icon danger remove-ct" data-id="${c.id}">删除</button>
+            </div>
           </div>
+          
           <div class="judges-section">
-            <div class="judges-title">👩‍⚖️ 评委 (权重${judgeWeight}%)</div>
+            <div class="section-toolbar">
+              <div class="judges-title">评委评分 (权重${judgeWeight}%)</div>
+              <button class="small-btn add-judge" data-id="${c.id}">添加评委</button>
+            </div>
             <div class="judges-grid" data-cid="${c.id}"></div>
           </div>
+          
           <div class="collect-link-section">
-            <span>📎 WPS链接</span>
-            <input class="collect-url-input" data-url-cid="${c.id}" value="${escapeHtml(c.collectUrl||'')}" placeholder="f.kdocs.cn/ksform/...">
-            <button class="fetch-btn" data-fetch="${c.id}">📥 拉取</button>
-            <span>📊 ${c.fetching?'…':(cAvg?.toFixed(2)||'—')}</span>
+            <span class="link-label">WPS文档链接</span>
+            <div class="link-input-group">
+              <input class="collect-url-input" data-url-cid="${c.id}" value="${escapeHtml(c.collectUrl||'')}" placeholder="https://www.kdocs.cn/l/...">
+            </div>
+            <input class="column-input" data-column-cid="${c.id}" value="${escapeHtml(c.collectColumn||'')}" placeholder="列名">
+            <button class="fetch-btn" data-fetch="${c.id}">读取数据</button>
+            <span class="collect-avg-preview">${c.fetching?'读取中…':(cAvg?.toFixed(2)||'无数据')}</span>
           </div>
+          
           <div class="contestant-summary">
-            <span>评委均分 ${jAvg?.toFixed(2)||'—'}</span>
-            <span>收集表 ${cAvg?.toFixed(2)||'—'}</span>
-            <span class="final-score-box">🏆 ${final?.toFixed(2)||'—'}</span>
+            <span>评委均分: ${jAvg?.toFixed(2)||'无'}</span>
+            <span>收集表均分: ${cAvg?.toFixed(2)||'无'}</span>
+            <span class="final-score-box">总分 ${final?.toFixed(2)||'无'}</span>
           </div>
         `;
+        
         const grid = card.querySelector('.judges-grid');
         c.judges.forEach((j, jIdx) => {
           const jCard = document.createElement('div');
           jCard.className = 'judge-card';
-          jCard.innerHTML = `<span class="judge-name" contenteditable data-cid="${c.id}" data-jidx="${jIdx}">${escapeHtml(j.judgeName)}</span>
-          <input class="score-input" value="${escapeHtml(j.score)}" data-cid="${c.id}" data-jidx="${jIdx}">`;
+          jCard.innerHTML = `
+            <div class="judge-card-header">
+              <span class="judge-name" contenteditable data-cid="${c.id}" data-jidx="${jIdx}">${escapeHtml(j.judgeName)}</span>
+              <button class="remove-judge" data-cid="${c.id}" data-jidx="${jIdx}">×</button>
+            </div>
+            <input class="score-input" value="${escapeHtml(j.score)}" data-cid="${c.id}" data-jidx="${jIdx}" placeholder="0-100">
+          `;
           grid.appendChild(jCard);
         });
+        
         area.appendChild(card);
       });
     };
-    function escapeHtml(s) { return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    
+    function escapeHtml(s) { 
+      return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+    }
 
+    // 事件处理
     document.addEventListener('click', async (e) => {
       const t = e.target;
+      
       if (t.classList.contains('add-judge')) {
         const c = contestants.find(c => c.id === parseInt(t.dataset.id));
-        if (c) { c.judges.push({ judgeName: `评委${c.judges.length+1}`, score: '80.0' }); renderAll(); }
+        if (c) { 
+          c.judges.push({ 
+            judgeName: `评委${c.judges.length+1}`, 
+            score: '80.0' 
+          }); 
+          renderAll(); 
+        }
       } else if (t.classList.contains('remove-ct')) {
-        if (contestants.length<=1) return alert('至少一名选手');
+        if (contestants.length <= 1) return alert('至少保留一名选手');
         contestants = contestants.filter(c => c.id !== parseInt(t.dataset.id));
         renderAll();
+      } else if (t.classList.contains('remove-judge')) {
+        const c = contestants.find(c => c.id === parseInt(t.dataset.cid));
+        const jIdx = parseInt(t.dataset.jidx);
+        if (c && c.judges.length > 1) {
+          c.judges.splice(jIdx, 1);
+          renderAll();
+        } else if (c) {
+          alert('至少保留一位评委');
+        }
       } else if (t.classList.contains('fetch-btn')) {
         const c = contestants.find(c => c.id === parseInt(t.dataset.fetch));
         if (c) await refreshCollect(c, true);
       }
     });
+    
     document.addEventListener('input', (e) => {
       if (e.target.classList.contains('score-input')) {
         const c = contestants.find(c => c.id === parseInt(e.target.dataset.cid));
-        if (c) { c.judges[parseInt(e.target.dataset.jidx)].score = e.target.value; renderAll(); }
+        if (c) { 
+          c.judges[parseInt(e.target.dataset.jidx)].score = e.target.value; 
+          renderAll(); 
+        }
       }
     });
+    
     document.addEventListener('blur', (e) => {
       if (e.target.classList.contains('contestant-name')) {
         const c = contestants.find(c => c.id === parseInt(e.target.dataset.id));
-        if (c) c.name = e.target.innerText.trim();
+        if (c) c.name = e.target.innerText.trim() || c.name;
       } else if (e.target.classList.contains('judge-name')) {
         const c = contestants.find(c => c.id === parseInt(e.target.dataset.cid));
-        if (c) c.judges[parseInt(e.target.dataset.jidx)].judgeName = e.target.innerText.trim()||`评委${parseInt(e.target.dataset.jidx)+1}`;
+        if (c) {
+          const jIdx = parseInt(e.target.dataset.jidx);
+          c.judges[jIdx].judgeName = e.target.innerText.trim() || `评委${jIdx+1}`;
+        }
       } else if (e.target.classList.contains('collect-url-input')) {
         const c = contestants.find(c => c.id === parseInt(e.target.dataset.urlCid));
         if (c) c.collectUrl = e.target.value;
+      } else if (e.target.classList.contains('column-input')) {
+        const c = contestants.find(c => c.id === parseInt(e.target.dataset.columnCid));
+        if (c) c.collectColumn = e.target.value;
       }
       renderAll();
     });
 
+    // 按钮事件
     document.getElementById('applyWeightBtn').addEventListener('click', () => {
       judgeWeight = Math.min(100, Math.max(0, parseInt(document.getElementById('judgeWeightInput').value)||60));
       collectWeight = Math.min(100, Math.max(0, parseInt(document.getElementById('collectWeightInput').value)||40));
       renderAll();
     });
+    
     document.getElementById('addContestantBtn').addEventListener('click', () => {
-      contestants.push({ id: nextId++, name: `新选手`, judges: [{ judgeName:'评委1', score:'80' }], collectUrl:'', fetchedAvg:null });
+      contestants.push({ 
+        id: nextId++, 
+        name: `新选手`, 
+        judges: [
+          { judgeName:'评委1', score:'80' },
+          { judgeName:'评委2', score:'80' }
+        ], 
+        collectUrl:'', 
+        collectColumn:'分数',
+        fetchedAvg:null 
+      });
       renderAll();
     });
+    
     document.getElementById('globalRecalcBtn').addEventListener('click', renderAll);
+    
     document.getElementById('resetDemoBtn').addEventListener('click', () => {
-      contestants = []; nextId=1;
-      DEMO.contestants.forEach(d => contestants.push({ id: nextId++, ...d, judges: d.judges.map(j=>({...j})), fetchedAvg:null }));
+      contestants = []; 
+      nextId = 1;
+      DEMO.contestants.forEach(d => contestants.push({ 
+        id: nextId++, 
+        ...d, 
+        judges: d.judges.map(j=>({...j})), 
+        fetchedAvg: null 
+      }));
       renderAll();
     });
+    
     // 初始化
     document.getElementById('resetDemoBtn').click();
   })();
