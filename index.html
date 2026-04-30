@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
-  <title>智能加权评分系统</title>
+  <title>智能加权评分系统 · 协作表读取</title>
   <style>
     * {
       margin: 0;
@@ -44,7 +44,6 @@
       margin-top: 2px;
     }
     
-    /* 权重控制栏 - 更简洁 */
     .weight-config-bar {
       background: white;
       border-radius: 8px;
@@ -299,7 +298,6 @@
       background: white;
     }
     
-    /* 新增列名输入框 */
     .column-input {
       width: 100px;
       border: 1px solid #e2e8f0;
@@ -413,7 +411,7 @@
 <div class="app-container">
   <div class="header">
     <h1>智能加权评分系统</h1>
-    <div class="subtitle">支持WPS文档 · 指定列读取 · 动态权重</div>
+    <div class="subtitle">支持WPS协作表 · 动态列读取 · 实时权重</div>
   </div>
 
   <div class="weight-config-bar">
@@ -438,7 +436,7 @@
     <button id="resetDemoBtn" class="global-btn secondary">重置演示</button>
   </div>
   <footer>
-    支持WPS在线文档，输入列名即可读取指定列数据
+    支持WPS协作表链接，自动识别在线表格并读取指定列数据
   </footer>
 </div>
 
@@ -449,13 +447,13 @@
     let judgeWeight = 60;
     let collectWeight = 40;
 
-    // 演示数据，使用您提供的WPS文档链接
+    // 演示数据使用协作表链接格式
     const DEMO = {
       contestants: [
         {
           name: "选手01",
-          collectUrl: "https://www.kdocs.cn/l/cbqXhNWQkv0G",
-          collectColumn: "请输入数字", // 指定列名
+          collectUrl: "https://www.kdocs.cn/l/sheet/example1",
+          collectColumn: "请输入数字",
           manualCollectAvg: null,
           judges: [
             { judgeName: "评委1", score: "92.5" },
@@ -516,77 +514,134 @@
       });
     };
 
-    // 新增：从WPS文档中提取指定列的数据
-    const fetchColumnData = async (url, columnName) => {
+    // 检测协作表链接类型并构建API请求
+    const detectSheetType = (url) => {
+      if (url.includes('kdocs.cn/l/sheet') || url.includes('kdocs.cn/sheet')) {
+        return 'wps_sheet';
+      } else if (url.includes('kdocs.cn/l/') || url.includes('kdocs.cn/document')) {
+        return 'wps_doc';
+      } else if (url.includes('docs.qq.com/sheet')) {
+        return 'tencent_sheet';
+      } else if (url.includes('docs.qq.com/doc')) {
+        return 'tencent_doc';
+      }
+      return 'generic';
+    };
+
+    // 从协作表读取数据
+    const fetchSheetData = async (url, columnName) => {
       if (!url || !url.trim() || !columnName || !columnName.trim()) return null;
       
+      const sheetType = detectSheetType(url);
+      
       try {
-        // 对于WPS在线文档，尝试通过导出为CSV的方式获取数据
-        let csvUrl = url;
+        let dataUrl;
         
-        // 如果链接包含 /l/ 格式，尝试转换为导出链接
-        if (url.includes('/l/')) {
-          csvUrl = url.replace(/\/l\//, '/export/csv/') + '?format=csv';
+        // 根据不同的协作表类型构建导出链接
+        if (sheetType === 'wps_sheet') {
+          // WPS协作表：尝试导出为CSV
+          dataUrl = url.replace(/\/l\/sheet\//, '/api/v1/sheet/export/') + '?format=csv';
+        } else if (sheetType === 'tencent_sheet') {
+          // 腾讯文档协作表
+          dataUrl = url.replace(/\/sheet\//, '/sheet/export/') + '?format=csv';
+        } else {
+          // 通用处理：尝试添加导出参数
+          dataUrl = url + (url.includes('?') ? '&' : '?') + 'format=csv';
         }
         
-        const resp = await fetch(csvUrl, { mode: 'cors', cache: 'no-cache' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const resp = await fetch(dataUrl, { 
+          mode: 'cors', 
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'text/csv,application/json,text/html'
+          }
+        });
+        
+        if (!resp.ok) {
+          // 如果导出失败，尝试直接获取页面内容
+          throw new Error('Export failed, trying direct access');
+        }
         
         const text = await resp.text();
-        const lines = text.split(/\r?\n/);
-        
-        if (lines.length < 2) return null;
-        
-        // 解析CSV头部
-        const headers = parseCSVLine(lines[0]);
-        let columnIndex = -1;
-        
-        // 查找指定列名
-        for (let i = 0; i < headers.length; i++) {
-          if (headers[i].trim() === columnName.trim()) {
-            columnIndex = i;
-            break;
-          }
-        }
-        
-        if (columnIndex === -1) return null;
-        
-        // 提取该列的所有数值
-        const numbers = [];
-        for (let i = 1; i < lines.length; i++) {
-          if (lines[i].trim()) {
-            const cells = parseCSVLine(lines[i]);
-            if (cells.length > columnIndex) {
-              const num = parseFloat(cells[columnIndex].replace(/[^\d.-]/g, ''));
-              if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
-                numbers.push(num);
-              }
-            }
-          }
-        }
-        
-        if (numbers.length === 0) return null;
-        return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
+        return parseSheetData(text, columnName);
         
       } catch (err) {
-        console.warn('获取失败:', err);
-        // 备选方案：尝试直接获取并解析HTML
+        console.log('API方式失败，尝试解析页面内容:', err);
+        
+        // 备选方案：直接访问协作表页面并解析HTML
         try {
-          const resp = await fetch(url, { mode: 'cors', cache: 'no-cache' });
-          const text = await resp.text();
-          const numbers = extractNumbersFromHTML(text, columnName);
-          if (numbers.length > 0) {
-            return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
-          }
+          const resp = await fetch(url, { 
+            mode: 'cors', 
+            cache: 'no-cache',
+            headers: {
+              'Accept': 'text/html,application/json'
+            }
+          });
+          
+          const html = await resp.text();
+          
+          // 尝试从页面中提取表格数据
+          const sheetData = extractSheetFromHTML(html, columnName);
+          if (sheetData) return sheetData;
+          
+          // 尝试解析嵌入的JSON数据
+          const jsonData = extractJSONFromHTML(html, columnName);
+          if (jsonData) return jsonData;
+          
         } catch (e) {
-          console.warn('备选方案也失败:', e);
+          console.warn('所有方法都失败了:', e);
         }
+        
         return null;
       }
     };
     
-    // 解析CSV行（处理引号内的逗号）
-    const parseCSVLine = (line) => {
+    // 解析CSV/TSV格式的表格数据
+    const parseSheetData = (text, columnName) => {
+      const lines = text.split(/\r?\n/);
+      if (lines.length < 2) return null;
+      
+      // 检测分隔符
+      const firstLine = lines[0];
+      let delimiter = ',';
+      if (firstLine.includes('\t')) delimiter = '\t';
+      else if (firstLine.includes(';')) delimiter = ';';
+      
+      const headers = parseCSVLine(firstLine, delimiter);
+      let columnIndex = -1;
+      
+      // 查找指定列名（模糊匹配）
+      for (let i = 0; i < headers.length; i++) {
+        const header = headers[i].trim().toLowerCase();
+        const search = columnName.trim().toLowerCase();
+        if (header === search || header.includes(search) || search.includes(header)) {
+          columnIndex = i;
+          break;
+        }
+      }
+      
+      if (columnIndex === -1) return null;
+      
+      // 提取该列的所有数值
+      const numbers = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          const cells = parseCSVLine(lines[i], delimiter);
+          if (cells.length > columnIndex) {
+            const num = parseFloat(cells[columnIndex].replace(/[^\d.-]/g, ''));
+            if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
+              numbers.push(num);
+            }
+          }
+        }
+      }
+      
+      if (numbers.length === 0) return null;
+      return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
+    };
+    
+    // 解析CSV行
+    const parseCSVLine = (line, delimiter = ',') => {
       const result = [];
       let current = '';
       let inQuotes = false;
@@ -595,7 +650,7 @@
         const char = line[i];
         if (char === '"') {
           inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
+        } else if (char === delimiter && !inQuotes) {
           result.push(current.trim());
           current = '';
         } else {
@@ -606,25 +661,27 @@
       return result;
     };
     
-    // 从HTML中提取表格数据
-    const extractNumbersFromHTML = (html, columnName) => {
+    // 从HTML中提取协作表数据
+    const extractSheetFromHTML = (html, columnName) => {
       const numbers = [];
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
+      
+      // 查找所有表格
       const tables = doc.querySelectorAll('table');
       
       tables.forEach(table => {
-        const headers = table.querySelectorAll('th');
+        const headers = table.querySelectorAll('th, thead td');
         let columnIndex = -1;
         
-        headers.forEach((th, index) => {
-          if (th.textContent.trim() === columnName.trim()) {
+        headers.forEach((header, index) => {
+          if (header.textContent.trim().toLowerCase().includes(columnName.trim().toLowerCase())) {
             columnIndex = index;
           }
         });
         
         if (columnIndex !== -1) {
-          const rows = table.querySelectorAll('tr');
+          const rows = table.querySelectorAll('tbody tr');
           rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             if (cells.length > columnIndex) {
@@ -637,12 +694,80 @@
         }
       });
       
+      if (numbers.length === 0) return null;
+      return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
+    };
+    
+    // 从HTML中提取JSON数据（适用于现代协作表应用）
+    const extractJSONFromHTML = (html, columnName) => {
+      try {
+        // 查找可能包含表格数据的script标签
+        const scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+        let match;
+        
+        while ((match = scriptRegex.exec(html)) !== null) {
+          const scriptContent = match[1];
+          
+          // 尝试查找JSON对象
+          const jsonRegex = /(?:window\.__INITIAL_STATE__|__DATA__|sheetData)\s*=\s*({[\s\S]*?});/g;
+          let jsonMatch;
+          
+          while ((jsonMatch = jsonRegex.exec(scriptContent)) !== null) {
+            try {
+              const data = JSON.parse(jsonMatch[1]);
+              const numbers = extractNumbersFromJSON(data, columnName);
+              if (numbers.length > 0) {
+                return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+      
+      return null;
+    };
+    
+    // 递归从JSON中提取数值
+    const extractNumbersFromJSON = (obj, columnName, path = '') => {
+      const numbers = [];
+      
+      if (obj === null || obj === undefined) return numbers;
+      
+      if (Array.isArray(obj)) {
+        // 如果是数组，可能是表格行数据
+        obj.forEach((item, index) => {
+          if (typeof item === 'object' && item !== null) {
+            // 查找列名匹配的属性
+            for (const key in item) {
+              if (key.toLowerCase().includes(columnName.toLowerCase())) {
+                const num = parseFloat(item[key]);
+                if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
+                  numbers.push(num);
+                }
+              }
+            }
+            // 递归搜索
+            numbers.push(...extractNumbersFromJSON(item, columnName, `${path}[${index}]`));
+          }
+        });
+      } else if (typeof obj === 'object') {
+        for (const key in obj) {
+          if (key.toLowerCase().includes(columnName.toLowerCase())) {
+            const num = parseFloat(obj[key]);
+            if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
+              numbers.push(num);
+            }
+          }
+          numbers.push(...extractNumbersFromJSON(obj[key], columnName, `${path}.${key}`));
+        }
+      }
+      
       return numbers;
     };
 
     const refreshCollect = async (c, showMsg) => {
       if (!c.collectUrl?.trim()) { 
-        if (showMsg) alert('请填写WPS文档链接');
+        if (showMsg) alert('请填写协作表链接');
         return; 
       }
       if (!c.collectColumn?.trim()) {
@@ -653,12 +778,16 @@
       c.fetching = true; 
       renderAll();
       
-      const avg = await fetchColumnData(c.collectUrl, c.collectColumn);
+      const avg = await fetchSheetData(c.collectUrl, c.collectColumn);
       c.fetching = false; 
       c.fetchedAvg = avg;
       
       if (showMsg) {
-        alert(avg !== null ? `成功读取"${c.collectColumn}"列，平均分：${avg.toFixed(2)}` : `未找到"${c.collectColumn}"列或数据格式错误`);
+        if (avg !== null) {
+          alert(`成功读取协作表"${c.collectColumn}"列，平均分：${avg.toFixed(2)}`);
+        } else {
+          alert(`未找到"${c.collectColumn}"列或数据格式不支持。请确认：\n1. 协作表链接正确\n2. 列名匹配\n3. 数据为0-100的数值`);
+        }
       }
       renderAll();
     };
@@ -698,9 +827,9 @@
           </div>
           
           <div class="collect-link-section">
-            <span class="link-label">WPS文档链接</span>
+            <span class="link-label">协作表链接</span>
             <div class="link-input-group">
-              <input class="collect-url-input" data-url-cid="${c.id}" value="${escapeHtml(c.collectUrl||'')}" placeholder="https://www.kdocs.cn/l/...">
+              <input class="collect-url-input" data-url-cid="${c.id}" value="${escapeHtml(c.collectUrl||'')}" placeholder="WPS协作表链接">
             </div>
             <input class="column-input" data-column-cid="${c.id}" value="${escapeHtml(c.collectColumn||'')}" placeholder="列名">
             <button class="fetch-btn" data-fetch="${c.id}">读取数据</button>
