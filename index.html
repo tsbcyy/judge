@@ -1,967 +1,972 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
-  <title>智能加权评分系统 · 腾讯文档</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      background: #f5f7fa;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      padding: 16px 12px;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-    }
-    
-    .app-container {
-      max-width: 1000px;
-      width: 100%;
-      margin: 0 auto;
-    }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    
-    .header h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: #1e293b;
-      margin: 0;
-    }
-    
-    .subtitle {
-      color: #64748b;
-      font-size: 0.7rem;
-      margin-top: 2px;
-    }
-    
-    .weight-config-bar {
-      background: white;
-      border-radius: 8px;
-      padding: 8px 14px;
-      margin-bottom: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      font-size: 0.8rem;
-    }
-    
-    .weight-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .weight-item label {
-      font-weight: 500;
-      font-size: 0.7rem;
-      color: #475569;
-      white-space: nowrap;
-    }
-    
-    .weight-input {
-      width: 60px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 6px;
-      text-align: center;
-      font-weight: 500;
-      font-size: 0.8rem;
-      color: #1e293b;
-    }
-    
-    .apply-weight-btn {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 5px 16px;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 0.7rem;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    
-    .apply-weight-btn:hover {
-      background: #2563eb;
-    }
-    
-    .contestants-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .contestant-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      overflow: hidden;
-      border: 1px solid #e2e8f0;
-      font-size: 0.75rem;
-    }
-    
-    .contestant-header {
-      background: #f8fafc;
-      padding: 8px 12px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .contestant-name-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    
-    .contestant-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #1e293b;
-      padding: 2px 8px;
-      background: #f1f5f9;
-      border-radius: 4px;
-      outline: none;
-      min-width: 80px;
-    }
-    
-    .contestant-badge {
-      color: #64748b;
-      font-size: 0.7rem;
-    }
-    
-    .contestant-actions {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .btn-icon {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      padding: 3px 10px;
-      border-radius: 4px;
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 0.65rem;
-      color: #475569;
-    }
-    
-    .btn-icon.danger {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #dc2626;
-    }
-    
-    .btn-icon:hover {
-      background: #e2e8f0;
-    }
-    
-    .judges-section {
-      padding: 8px 12px;
-      background: white;
-    }
-    
-    .section-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    
-    .judges-title {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #475569;
-    }
-    
-    .small-btn {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      padding: 2px 10px;
-      border-radius: 4px;
-      font-size: 0.6rem;
-      font-weight: 500;
-      cursor: pointer;
-      color: #475569;
-    }
-    
-    .small-btn.primary {
-      background: #3b82f6;
-      color: white;
-      border-color: #3b82f6;
-    }
-    
-    .judges-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-    
-    .judge-card {
-      background: #f8fafc;
-      border-radius: 6px;
-      padding: 5px 7px;
-      border: 1px solid #e2e8f0;
-    }
-    
-    .judge-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 3px;
-    }
-    
-    .judge-name {
-      font-weight: 500;
-      font-size: 0.6rem;
-      color: #475569;
-    }
-    
-    .remove-judge {
-      background: none;
-      border: none;
-      color: #ef4444;
-      font-size: 0.75rem;
-      cursor: pointer;
-      padding: 0;
-    }
-    
-    .score-input {
-      width: 100%;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 2px 5px;
-      text-align: center;
-      font-family: monospace;
-      font-size: 0.65rem;
-      background: white;
-    }
-    
-    .score-input.invalid {
-      border-color: #ef4444;
-      background: #fef2f2;
-    }
-    
-    .collect-link-section {
-      background: #f8fafc;
-      margin: 0 12px 8px;
-      padding: 8px 10px;
-      border-radius: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid #e2e8f0;
-      font-size: 0.65rem;
-    }
-    
-    .link-label {
-      font-weight: 500;
-      color: #475569;
-      white-space: nowrap;
-    }
-    
-    .link-input-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 2;
-      min-width: 200px;
-    }
-    
-    .collect-url-input {
-      flex: 2;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 5px 8px;
-      font-size: 0.6rem;
-      background: white;
-    }
-    
-    .column-input {
-      width: 100px;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 5px 8px;
-      font-size: 0.6rem;
-      background: white;
-    }
-    
-    .manual-avg-input {
-      width: 80px;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 5px 8px;
-      font-size: 0.6rem;
-      background: white;
-    }
-    
-    .fetch-btn {
-      background: #3b82f6;
-      border: none;
-      border-radius: 4px;
-      padding: 4px 12px;
-      color: white;
-      font-weight: 500;
-      font-size: 0.6rem;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    
-    .fetch-btn:hover {
-      background: #2563eb;
-    }
-    
-    .fetch-btn.loading {
-      opacity: 0.6;
-      pointer-events: none;
-    }
-    
-    .collect-avg-preview {
-      font-size: 0.65rem;
-      color: #475569;
-      white-space: nowrap;
-      background: #e2e8f0;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-    
-    .contestant-summary {
-      background: #f8fafc;
-      margin: 0 12px 8px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      border: 1px solid #e2e8f0;
-      font-size: 0.65rem;
-    }
-    
-    .final-score-box {
-      background: #1e293b;
-      padding: 2px 10px;
-      border-radius: 4px;
-      color: white;
-      font-weight: 600;
-      font-size: 0.75rem;
-    }
-    
-    .global-actions {
-      margin-top: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      background: white;
-      padding: 10px 14px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    
-    .global-btn {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 5px 16px;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 0.7rem;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    
-    .global-btn.secondary {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #e2e8f0;
-    }
-    
-    .global-btn:hover {
-      opacity: 0.9;
-    }
-    
-    footer {
-      text-align: center;
-      margin-top: 14px;
-      color: #94a3b8;
-      font-size: 0.6rem;
-    }
-    
-    @media (max-width: 650px) {
-      .judges-grid {
-        grid-template-columns: 1fr;
-      }
-      .collect-link-section {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能评分数据读取工具集 - 支持WPS/腾讯文档</title>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+            padding: 24px 16px;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ========== 头部 ========== */
+        .site-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .site-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+        .site-header .badge {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 0 4px;
+        }
+        .site-header p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        /* ========== 方案卡片 ========== */
+        .strategy-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .strategy-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .strategy-header {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            background: #fafbfc;
+        }
+        .strategy-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        .strategy-header h2 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+        }
+        .strategy-tag {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-weight: 500;
+        }
+        .tag-recommended {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .tag-alternative {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .tag-advanced {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .strategy-body {
+            padding: 18px 20px;
+        }
+        .strategy-body h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .strategy-body ol,
+        .strategy-body ul {
+            padding-left: 20px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .strategy-body li {
+            margin-bottom: 4px;
+        }
+
+        .demo-area {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .demo-area label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .demo-area textarea {
+            width: 100%;
+            min-height: 80px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+            background: white;
+        }
+        .demo-area input[type="text"],
+        .demo-area input[type="url"] {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+        .result-box {
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: none;
+        }
+        .result-box.show {
+            display: block;
+        }
+        .result-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .result-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .result-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* ========== 表格样式 ========== */
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            display: none;
+        }
+        .preview-table.show {
+            display: table;
+        }
+        .preview-table th,
+        .preview-table td {
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            text-align: center;
+        }
+        .preview-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .preview-table td {
+            color: var(--text-secondary);
+        }
+
+        /* ========== 完整评分工具区 ========== */
+        .full-tool-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        .section-title {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            background: #fafbfc;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        /* 权重栏 */
+        .weight-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+        }
+        .weight-bar label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+        .weight-bar input {
+            width: 65px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* 选手卡片 */
+        .contestants-area {
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .player-card {
+            background: #fafbfc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+        .player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .player-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .player-rank {
+            background: #1e293b;
+            color: #facc15;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .judge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .judge-chip {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+        }
+        .judge-chip input {
+            width: 45px;
+            border: none;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: transparent;
+        }
+        .data-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+        }
+        .data-row textarea {
+            flex: 1;
+            min-width: 200px;
+            height: 50px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            resize: vertical;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+        }
+        .final-score {
+            background: #1e293b;
+            color: #facc15;
+            padding: 3px 12px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+
+        .global-actions {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            background: #fafbfc;
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+
+        /* 页脚 */
+        .site-footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            padding: 16px 0;
+            border-top: 1px solid var(--border);
+            margin-top: 32px;
+        }
+        .site-footer strong {
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
-<div class="app-container">
-  <div class="header">
-    <h1>智能加权评分系统</h1>
-    <div class="subtitle">腾讯文档 · 自动读取 · 手动/自动平均分</div>
-  </div>
+<div class="container">
 
-  <div class="weight-config-bar">
-    <div class="weight-item">
-      <label>评委权重</label>
-      <input type="number" id="judgeWeightInput" class="weight-input" step="5" min="0" max="100" value="60">
-      <span style="font-size:0.7rem;color:#64748b">%</span>
+    <!-- ==================== 头部 ==================== -->
+    <header class="site-header">
+        <h1>📊 智能评分数据读取工具集</h1>
+        <div>
+            <span class="badge">WPS 文档</span>
+            <span class="badge">腾讯文档</span>
+            <span class="badge">在线表格</span>
+        </div>
+        <p>三种不同策略，解决在线文档数据读取难题。请根据实际情况选择最适合的方案。</p>
+    </header>
+
+    <!-- ==================== 方案一：复制粘贴解析（推荐） ==================== -->
+    <div class="strategy-grid">
+        <div class="strategy-card">
+            <div class="strategy-header">
+                <div class="strategy-number" style="background: #10b981;">1</div>
+                <h2>方案一：复制粘贴解析</h2>
+                <span class="strategy-tag tag-recommended">⭐ 最推荐</span>
+            </div>
+            <div class="strategy-body">
+                <h3>📋 适用场景</h3>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                    适用于所有WPS和腾讯文档。无需设置权限，无需登录，100%可靠。
+                </p>
+                <h3>🔧 操作步骤</h3>
+                <ol>
+                    <li>在WPS或腾讯文档中打开您的在线表格</li>
+                    <li>用鼠标选中包含数据的列（可以整列选中）</li>
+                    <li>按 <strong>Ctrl+C</strong>（Mac: Cmd+C）复制</li>
+                    <li>粘贴到下方文本框中</li>
+                    <li>点击「解析数据」按钮</li>
+                </ol>
+                <div class="demo-area">
+                    <label>📥 在此粘贴从在线表格复制的数据：</label>
+                    <textarea id="pasteArea1" placeholder="示例：&#10;92.5&#10;88.0&#10;94.0&#10;89.5&#10;...&#10;（支持Tab分隔、逗号分隔、换行分隔）"></textarea>
+                    <div class="btn-row">
+                        <button class="btn btn-success" onclick="parsePastedData('pasteArea1', 'pasteResult1')">🔍 解析数据</button>
+                        <button class="btn btn-outline" onclick="document.getElementById('pasteArea1').value='92.5, 88.0, 94.0, 89.5, 91.0, 87.5'">📝 加载示例数据</button>
+                    </div>
+                    <div id="pasteResult1" class="result-box"></div>
+                    <table id="pasteTable1" class="preview-table">
+                        <thead><tr><th>序号</th><th>数值</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 方案二：CSV导出上传 ==================== -->
+        <div class="strategy-card">
+            <div class="strategy-header">
+                <div class="strategy-number" style="background: #f59e0b;">2</div>
+                <h2>方案二：CSV文件导出后上传</h2>
+                <span class="strategy-tag tag-alternative">备选方案</span>
+            </div>
+            <div class="strategy-body">
+                <h3>📋 适用场景</h3>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                    当数据量较大时适用。在WPS/腾讯文档中导出为CSV文件，然后上传解析。
+                </p>
+                <h3>🔧 操作步骤</h3>
+                <ol>
+                    <li>在WPS/腾讯文档中，点击「文件」→「下载」→「CSV」</li>
+                    <li>保存CSV文件到本地</li>
+                    <li>点击下方「选择文件」上传CSV文件</li>
+                    <li>系统自动解析并显示数据</li>
+                </ol>
+                <div class="demo-area">
+                    <label>📂 上传CSV文件：</label>
+                    <input type="file" id="csvFileInput" accept=".csv" style="margin-bottom:8px;">
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="uploadCSVFile()">📤 上传并解析</button>
+                    </div>
+                    <div id="csvResult" class="result-box"></div>
+                    <table id="csvTable" class="preview-table">
+                        <thead><tr><th>序号</th><th>数值</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 方案三：公开API读取（需权限设置） ==================== -->
+        <div class="strategy-card">
+            <div class="strategy-header">
+                <div class="strategy-number" style="background: #3b82f6;">3</div>
+                <h2>方案三：公开链接API读取</h2>
+                <span class="strategy-tag tag-advanced">需设置权限</span>
+            </div>
+            <div class="strategy-body">
+                <h3>📋 适用场景</h3>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                    仅适用于已设置为「获得链接的人可查看」的公开文档。此方案尝试通过API自动获取数据。
+                </p>
+                <div style="background:#fef3c7;padding:8px 12px;border-radius:6px;font-size:0.75rem;margin-bottom:10px;color:#92400e;">
+                    ⚠️ <strong>注意：</strong>由于浏览器跨域限制(CORS)，此方案成功率有限。WPS文档通常需要登录才能访问数据，推荐使用方案一或方案二。
+                </div>
+                <h3>🔧 操作步骤</h3>
+                <ol>
+                    <li>确保文档权限为「获得链接的人可查看」</li>
+                    <li>在下方输入文档链接</li>
+                    <li>输入要读取的列名</li>
+                    <li>点击「尝试读取」</li>
+                </ol>
+                <div class="demo-area">
+                    <label>🔗 文档链接：</label>
+                    <input type="url" id="docUrl" placeholder="https://docs.qq.com/sheet/... 或 https://www.kdocs.cn/l/...">
+                    <label>📝 列名：</label>
+                    <input type="text" id="columnName" placeholder="例如：分数、请输入数字">
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="tryFetchAPI()">🌐 尝试读取</button>
+                        <button class="btn btn-outline" onclick="document.getElementById('docUrl').value='https://docs.qq.com/sheet/example';document.getElementById('columnName').value='分数'">📝 加载示例</button>
+                    </div>
+                    <div id="apiResult" class="result-box"></div>
+                    <table id="apiTable" class="preview-table">
+                        <thead><tr><th>序号</th><th>数值</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="weight-item">
-      <label>收集表权重</label>
-      <input type="number" id="collectWeightInput" class="weight-input" step="5" min="0" max="100" value="40">
-      <span style="font-size:0.7rem;color:#64748b">%</span>
+
+    <!-- ==================== 完整评分工具 ==================== -->
+    <div class="full-tool-section">
+        <div class="section-title">🏆 完整评分计算工具</div>
+        <div class="weight-bar">
+            <label>评委权重</label>
+            <input type="number" id="toolJudgeWeight" value="60" step="5" min="0" max="100"> <span style="font-size:0.8rem;">%</span>
+            <label>收集表权重</label>
+            <input type="number" id="toolCollectWeight" value="40" step="5" min="0" max="100"> <span style="font-size:0.8rem;">%</span>
+            <button class="btn btn-primary" onclick="applyToolWeights()">应用权重</button>
+        </div>
+        <div id="toolContestants" class="contestants-area"></div>
+        <div class="global-actions">
+            <button class="btn btn-primary" onclick="addToolPlayer()">➕ 添加选手</button>
+            <button class="btn btn-outline" onclick="renderToolAll()">🔄 重新计算</button>
+            <button class="btn btn-outline" onclick="resetToolDemo()">📋 重置示例</button>
+        </div>
     </div>
-    <button id="applyWeightBtn" class="apply-weight-btn">应用权重</button>
-  </div>
 
-  <div id="contestantsArea" class="contestants-grid"></div>
-
-  <div class="global-actions">
-    <button id="addContestantBtn" class="global-btn">添加选手</button>
-    <button id="globalRecalcBtn" class="global-btn">重新计算</button>
-    <button id="resetDemoBtn" class="global-btn secondary">重置演示</button>
-  </div>
-  <footer>
-    支持腾讯文档在线表格，输入共享链接即可自动读取指定列数据
-  </footer>
+    <!-- ==================== 页脚 ==================== -->
+    <footer class="site-footer">
+        <p>💡 <strong>提示：</strong>方案一（复制粘贴）是所有场景下最可靠、最快速的方法。</p>
+        <p>支持 <strong>WPS在线文档</strong>（kdocs.cn）和 <strong>腾讯文档</strong>（docs.qq.com）的数据读取。</p>
+    </footer>
 </div>
 
 <script>
-  (function() {
-    let contestants = [];
-    let nextId = 1;
-    let judgeWeight = 60;
-    let collectWeight = 40;
-
-    // 演示数据
-    const DEMO = {
-      contestants: [
-        {
-          name: "选手01",
-          collectUrl: "",
-          collectColumn: "分数",
-          manualCollectAvg: null,
-          fetchedAvg: null,
-          judges: [
-            { judgeName: "评委1", score: "92.5" },
-            { judgeName: "评委2", score: "88.0" },
-            { judgeName: "评委3", score: "94.0" }
-          ]
-        },
-        {
-          name: "选手02",
-          collectUrl: "",
-          collectColumn: "分数",
-          manualCollectAvg: 91.0,
-          fetchedAvg: null,
-          judges: [
-            { judgeName: "评委1", score: "95.0" },
-            { judgeName: "评委2", score: "91.5" },
-            { judgeName: "评委3", score: "89.0" }
-          ]
-        }
-      ]
-    };
-
-    const isValidScore = (val) => {
-      const num = parseFloat(val);
-      return !isNaN(num) && num >= 0 && num <= 100;
-    };
-    
-    const parseScore = (val) => isValidScore(val) ? parseFloat(val) : null;
-    
-    const computeJudgeAvg = (judges) => {
-      const valid = judges.map(j => parseScore(j.score)).filter(s => s !== null);
-      return valid.length ? valid.reduce((a,b) => a+b, 0) / valid.length : null;
-    };
-    
-    const getCollectAvg = (c) => {
-      // 优先级：手动输入 > 自动获取
-      if (c.manualCollectAvg !== undefined && c.manualCollectAvg !== null && c.manualCollectAvg !== '') {
-        const manual = parseFloat(c.manualCollectAvg);
-        if (!isNaN(manual)) return Math.min(100, Math.max(0, manual));
-      }
-      if (c.fetchedAvg !== undefined && c.fetchedAvg !== null && !isNaN(c.fetchedAvg)) {
-        return Math.min(100, Math.max(0, c.fetchedAvg));
-      }
-      return null;
-    };
-    
-    const computeFinal = (c) => {
-      const jAvg = computeJudgeAvg(c.judges);
-      const cAvg = getCollectAvg(c);
-      const total = judgeWeight + collectWeight || 1;
-      let score = 0, valid = false;
-      if (jAvg !== null) { score += jAvg * (judgeWeight / total); valid = true; }
-      if (cAvg !== null) { score += cAvg * (collectWeight / total); valid = true; }
-      return valid ? score : null;
-    };
-    
-    const sortContestants = () => {
-      contestants.sort((a,b) => {
-        const sa = computeFinal(a); const sb = computeFinal(b);
-        if (sa === null && sb === null) return a.id - b.id;
-        if (sa === null) return 1; if (sb === null) return -1;
-        return sb - sa || (a.id - b.id);
-      });
-    };
-
-    // 从腾讯文档读取数据
-    const fetchTencentDoc = async (url, columnName) => {
-      if (!url || !url.trim() || !columnName || !columnName.trim()) return null;
-      
-      try {
-        // 腾讯文档的公开表格可以通过特定API获取数据
-        let apiUrl = url;
-        
-        // 处理腾讯文档链接格式
-        if (url.includes('docs.qq.com/sheet/')) {
-          // 腾讯文档表格链接
-          const sheetId = url.match(/\/sheet\/([A-Za-z0-9]+)/)?.[1];
-          if (sheetId) {
-            apiUrl = `https://docs.qq.com/dop-api/opendoc?id=${sheetId}&outformat=1&normal=1`;
-          }
-        } else if (url.includes('docs.qq.com/doc/')) {
-          // 腾讯文档文档链接
-          const docId = url.match(/\/doc\/([A-Za-z0-9]+)/)?.[1];
-          if (docId) {
-            apiUrl = `https://docs.qq.com/dop-api/opendoc?id=${docId}&outformat=1&normal=1`;
-          }
-        }
-        
-        const resp = await fetch(apiUrl, { 
-          mode: 'cors', 
-          cache: 'no-cache',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!resp.ok) {
-          // 如果API失败，尝试直接获取页面
-          const pageResp = await fetch(url, { 
-            mode: 'cors', 
-            cache: 'no-cache',
-            headers: {
-              'Accept': 'text/html'
-            }
-          });
-          
-          if (pageResp.ok) {
-            const html = await pageResp.text();
-            return extractDataFromHTML(html, columnName);
-          }
-          throw new Error(`HTTP ${resp.status}`);
-        }
-        
-        const data = await resp.json();
-        return extractDataFromTencentJSON(data, columnName);
-        
-      } catch (err) {
-        console.warn('腾讯文档API获取失败:', err);
-        
-        // 备选方案：尝试直接访问页面
-        try {
-          const pageResp = await fetch(url, { 
-            mode: 'cors', 
-            cache: 'no-cache',
-            headers: {
-              'Accept': 'text/html'
-            }
-          });
-          
-          if (pageResp.ok) {
-            const html = await pageResp.text();
-            return extractDataFromHTML(html, columnName);
-          }
-        } catch (e) {
-          console.warn('所有方法都失败了:', e);
-        }
-        
-        return null;
-      }
-    };
-    
-    // 从腾讯文档JSON中提取数据
-    const extractDataFromTencentJSON = (data, columnName) => {
-      try {
+    // ==================== 通用工具函数 ====================
+    function extractNumbers(text) {
+        if (!text || !text.trim()) return [];
         const numbers = [];
-        
-        // 腾讯文档的数据结构通常在这个路径
-        if (data && data.data && data.data.initialAttributedText) {
-          const text = data.data.initialAttributedText.text;
-          // 解析文本中的表格数据
-          const lines = text.split('\n');
-          let columnIndex = -1;
-          
-          for (let i = 0; i < lines.length; i++) {
-            const cells = lines[i].split('\t');
-            if (i === 0) {
-              // 查找列名
-              columnIndex = cells.findIndex(cell => 
-                cell.trim().toLowerCase().includes(columnName.trim().toLowerCase())
-              );
-            } else if (columnIndex !== -1 && cells.length > columnIndex) {
-              const num = parseFloat(cells[columnIndex].replace(/[^\d.-]/g, ''));
-              if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
-                numbers.push(num);
-              }
-            }
-          }
-          
-          if (numbers.length > 0) {
-            return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
-          }
-        }
-        
-        return null;
-      } catch (e) {
-        return null;
-      }
-    };
-    
-    // 从HTML中提取数据
-    const extractDataFromHTML = (html, columnName) => {
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const numbers = [];
-        
-        // 查找表格
-        const tables = doc.querySelectorAll('table');
-        tables.forEach(table => {
-          const headers = table.querySelectorAll('th, thead td');
-          let columnIndex = -1;
-          
-          headers.forEach((header, index) => {
-            if (header.textContent.trim().toLowerCase().includes(columnName.trim().toLowerCase())) {
-              columnIndex = index;
-            }
-          });
-          
-          if (columnIndex !== -1) {
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-              const cells = row.querySelectorAll('td');
-              if (cells.length > columnIndex) {
-                const num = parseFloat(cells[columnIndex].textContent.replace(/[^\d.-]/g, ''));
-                if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
-                  numbers.push(num);
+        // 按行分割
+        const lines = text.split(/\r?\n/);
+        for (let line of lines) {
+            // 按常见分隔符分割
+            const parts = line.split(/[\t,;|]+/);
+            for (let part of parts) {
+                const cleaned = part.replace(/[^\d.-]/g, '').trim();
+                if (cleaned) {
+                    const num = parseFloat(cleaned);
+                    if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
+                        numbers.push(num);
+                    }
                 }
-              }
-            });
-          }
-        });
-        
-        if (numbers.length === 0) {
-          // 尝试从script标签中提取数据
-          const scripts = doc.querySelectorAll('script');
-          scripts.forEach(script => {
-            const content = script.textContent;
-            // 查找可能的数据对象
-            const dataMatch = content.match(/window\.__INITIAL_STATE__\s*=\s*({[\s\S]*?});/);
-            if (dataMatch) {
-              try {
-                const jsonData = JSON.parse(dataMatch[1]);
-                const extracted = extractNumbersFromJSON(jsonData, columnName);
-                numbers.push(...extracted);
-              } catch (e) {}
             }
-          });
         }
-        
-        if (numbers.length > 0) {
-          return Math.min(100, Math.max(0, numbers.reduce((s,v) => s+v, 0) / numbers.length));
-        }
-        
-        return null;
-      } catch (e) {
-        return null;
-      }
-    };
-    
-    // 从JSON中提取数字
-    const extractNumbersFromJSON = (obj, columnName) => {
-      const numbers = [];
-      
-      if (obj === null || obj === undefined) return numbers;
-      
-      if (Array.isArray(obj)) {
-        obj.forEach(item => {
-          if (typeof item === 'object' && item !== null) {
-            for (const key in item) {
-              if (key.toLowerCase().includes(columnName.toLowerCase())) {
-                const num = parseFloat(item[key]);
-                if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
-                  numbers.push(num);
-                }
-              }
-            }
-            numbers.push(...extractNumbersFromJSON(item, columnName));
-          }
-        });
-      } else if (typeof obj === 'object') {
-        for (const key in obj) {
-          if (key.toLowerCase().includes(columnName.toLowerCase())) {
-            const num = parseFloat(obj[key]);
-            if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 100) {
-              numbers.push(num);
-            }
-          }
-          numbers.push(...extractNumbersFromJSON(obj[key], columnName));
-        }
-      }
-      
-      return numbers;
-    };
-
-    const refreshCollect = async (c, showMsg) => {
-      if (!c.collectUrl?.trim()) { 
-        if (showMsg) alert('请填写腾讯文档链接');
-        return; 
-      }
-      if (!c.collectColumn?.trim()) {
-        if (showMsg) alert('请填写要读取的列名');
-        return;
-      }
-      
-      c.fetching = true; 
-      renderAll();
-      
-      const avg = await fetchTencentDoc(c.collectUrl, c.collectColumn);
-      c.fetching = false; 
-      
-      if (avg !== null) {
-        c.fetchedAvg = avg;
-        if (showMsg) {
-          alert(`成功读取"${c.collectColumn}"列，平均分：${avg.toFixed(2)}`);
-        }
-      } else {
-        if (showMsg) {
-          alert(`无法自动读取数据。请确认：\n1. 文档已设置为"获得链接的人可查看"\n2. 列名完全匹配\n3. 数据为0-100的数值`);
-        }
-      }
-      
-      renderAll();
-    };
-
-    const renderAll = () => {
-      sortContestants();
-      const area = document.getElementById('contestantsArea');
-      area.innerHTML = '';
-      
-      contestants.forEach((c, idx) => {
-        const jAvg = computeJudgeAvg(c.judges);
-        const cAvg = getCollectAvg(c);
-        const final = computeFinal(c);
-        const rank = idx + 1;
-        
-        const card = document.createElement('div');
-        card.className = 'contestant-card';
-        
-        card.innerHTML = `
-          <div class="contestant-header">
-            <div class="contestant-name-wrapper">
-              <span class="contestant-name" contenteditable data-id="${c.id}">${escapeHtml(c.name)}</span>
-              <span class="contestant-badge">第${rank}名</span>
-            </div>
-            <div class="contestant-actions">
-              <button class="btn-icon add-judge" data-id="${c.id}">添加评委</button>
-              <button class="btn-icon danger remove-ct" data-id="${c.id}">删除</button>
-            </div>
-          </div>
-          
-          <div class="judges-section">
-            <div class="section-toolbar">
-              <div class="judges-title">评委评分 (权重${judgeWeight}%)</div>
-              <button class="small-btn add-judge" data-id="${c.id}">添加评委</button>
-            </div>
-            <div class="judges-grid" data-cid="${c.id}"></div>
-          </div>
-          
-          <div class="collect-link-section">
-            <span class="link-label">腾讯文档链接</span>
-            <div class="link-input-group">
-              <input class="collect-url-input" data-url-cid="${c.id}" value="${escapeHtml(c.collectUrl||'')}" placeholder="https://docs.qq.com/sheet/...">
-            </div>
-            <input class="column-input" data-column-cid="${c.id}" value="${escapeHtml(c.collectColumn||'')}" placeholder="列名">
-            <button class="fetch-btn ${c.fetching ? 'loading' : ''}" data-fetch="${c.id}" ${c.fetching ? 'disabled' : ''}>${c.fetching ? '读取中...' : '读取数据'}</button>
-            <input class="manual-avg-input" data-manual-cid="${c.id}" value="${c.manualCollectAvg !== null && c.manualCollectAvg !== undefined ? c.manualCollectAvg : ''}" placeholder="手动平均分" type="number" step="0.1" min="0" max="100">
-            <span class="collect-avg-preview">均分: ${cAvg?.toFixed(2)||'无'}</span>
-          </div>
-          
-          <div class="contestant-summary">
-            <span>评委均分: ${jAvg?.toFixed(2)||'无'}</span>
-            <span>收集表均分: ${cAvg?.toFixed(2)||'无'}</span>
-            <span class="final-score-box">总分 ${final?.toFixed(2)||'无'}</span>
-          </div>
-        `;
-        
-        const grid = card.querySelector('.judges-grid');
-        c.judges.forEach((j, jIdx) => {
-          const jCard = document.createElement('div');
-          jCard.className = 'judge-card';
-          jCard.innerHTML = `
-            <div class="judge-card-header">
-              <span class="judge-name" contenteditable data-cid="${c.id}" data-jidx="${jIdx}">${escapeHtml(j.judgeName)}</span>
-              <button class="remove-judge" data-cid="${c.id}" data-jidx="${jIdx}">×</button>
-            </div>
-            <input class="score-input" value="${escapeHtml(j.score)}" data-cid="${c.id}" data-jidx="${jIdx}" placeholder="0-100">
-          `;
-          grid.appendChild(jCard);
-        });
-        
-        area.appendChild(card);
-      });
-    };
-    
-    function escapeHtml(s) { 
-      return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+        return numbers;
     }
 
-    // 事件处理
-    document.addEventListener('click', async (e) => {
-      const t = e.target;
-      
-      if (t.classList.contains('add-judge')) {
-        const c = contestants.find(c => c.id === parseInt(t.dataset.id));
-        if (c) { 
-          c.judges.push({ 
-            judgeName: `评委${c.judges.length+1}`, 
-            score: '80.0' 
-          }); 
-          renderAll(); 
+    function calcAverage(numbers) {
+        if (numbers.length === 0) return null;
+        return numbers.reduce((a, b) => a + b, 0) / numbers.length;
+    }
+
+    function displayResult(elementId, numbers, avg) {
+        const el = document.getElementById(elementId);
+        if (numbers.length === 0) {
+            el.className = 'result-box show result-error';
+            el.textContent = '❌ 未找到有效数值（请确保数据在0-100范围内）';
+        } else {
+            el.className = 'result-box show result-success';
+            el.textContent = `✅ 成功提取 ${numbers.length} 个数值，平均分：${avg.toFixed(2)}`;
         }
-      } else if (t.classList.contains('remove-ct')) {
-        if (contestants.length <= 1) return alert('至少保留一名选手');
-        contestants = contestants.filter(c => c.id !== parseInt(t.dataset.id));
-        renderAll();
-      } else if (t.classList.contains('remove-judge')) {
-        const c = contestants.find(c => c.id === parseInt(t.dataset.cid));
-        const jIdx = parseInt(t.dataset.jidx);
-        if (c && c.judges.length > 1) {
-          c.judges.splice(jIdx, 1);
-          renderAll();
-        } else if (c) {
-          alert('至少保留一位评委');
+    }
+
+    function displayTable(tableId, numbers) {
+        const table = document.getElementById(tableId);
+        const tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+        if (numbers.length > 0) {
+            table.classList.add('show');
+            numbers.forEach((num, i) => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = i + 1;
+                row.insertCell(1).textContent = num;
+            });
+        } else {
+            table.classList.remove('show');
         }
-      } else if (t.classList.contains('fetch-btn') && !t.classList.contains('loading')) {
-        const c = contestants.find(c => c.id === parseInt(t.dataset.fetch));
-        if (c) await refreshCollect(c, true);
-      }
-    });
-    
-    document.addEventListener('input', (e) => {
-      if (e.target.classList.contains('score-input')) {
-        const c = contestants.find(c => c.id === parseInt(e.target.dataset.cid));
-        if (c) { 
-          c.judges[parseInt(e.target.dataset.jidx)].score = e.target.value; 
-          renderAll(); 
+    }
+
+    // ==================== 方案一：复制粘贴解析 ====================
+    function parsePastedData(textareaId, resultId) {
+        const text = document.getElementById(textareaId).value;
+        const numbers = extractNumbers(text);
+        const avg = calcAverage(numbers);
+        displayResult(resultId, numbers, avg);
+        displayTable('pasteTable1', numbers);
+    }
+
+    // ==================== 方案二：CSV文件上传 ====================
+    function uploadCSVFile() {
+        const fileInput = document.getElementById('csvFileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            document.getElementById('csvResult').className = 'result-box show result-error';
+            document.getElementById('csvResult').textContent = '❌ 请先选择一个CSV文件';
+            return;
         }
-      }
-    });
-    
-    document.addEventListener('blur', (e) => {
-      if (e.target.classList.contains('contestant-name')) {
-        const c = contestants.find(c => c.id === parseInt(e.target.dataset.id));
-        if (c) c.name = e.target.innerText.trim() || c.name;
-      } else if (e.target.classList.contains('judge-name')) {
-        const c = contestants.find(c => c.id === parseInt(e.target.dataset.cid));
-        if (c) {
-          const jIdx = parseInt(e.target.dataset.jidx);
-          c.judges[jIdx].judgeName = e.target.innerText.trim() || `评委${jIdx+1}`;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const numbers = extractNumbers(text);
+            const avg = calcAverage(numbers);
+            displayResult('csvResult', numbers, avg);
+            displayTable('csvTable', numbers);
+        };
+        reader.onerror = function() {
+            document.getElementById('csvResult').className = 'result-box show result-error';
+            document.getElementById('csvResult').textContent = '❌ 文件读取失败';
+        };
+        reader.readAsText(file);
+    }
+
+    // ==================== 方案三：公开API读取 ====================
+    async function tryFetchAPI() {
+        const url = document.getElementById('docUrl').value.trim();
+        const columnName = document.getElementById('columnName').value.trim();
+        const resultEl = document.getElementById('apiResult');
+
+        if (!url) {
+            resultEl.className = 'result-box show result-error';
+            resultEl.textContent = '❌ 请输入文档链接';
+            return;
         }
-      } else if (e.target.classList.contains('collect-url-input')) {
-        const c = contestants.find(c => c.id === parseInt(e.target.dataset.urlCid));
-        if (c) c.collectUrl = e.target.value;
-      } else if (e.target.classList.contains('column-input')) {
-        const c = contestants.find(c => c.id === parseInt(e.target.dataset.columnCid));
-        if (c) c.collectColumn = e.target.value;
-      } else if (e.target.classList.contains('manual-avg-input')) {
-        const c = contestants.find(c => c.id === parseInt(e.target.dataset.manualCid));
-        if (c) {
-          const value = e.target.value.trim();
-          if (value === '') {
-            c.manualCollectAvg = null;
-          } else {
-            const num = parseFloat(value);
-            if (!isNaN(num) && num >= 0 && num <= 100) {
-              c.manualCollectAvg = num;
+        if (!columnName) {
+            resultEl.className = 'result-box show result-error';
+            resultEl.textContent = '❌ 请输入要读取的列名';
+            return;
+        }
+
+        resultEl.className = 'result-box show result-info';
+        resultEl.textContent = '⏳ 正在尝试读取文档数据...';
+
+        try {
+            const response = await fetch(url, {
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: { 'Accept': 'text/html,application/json,text/csv' }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
-          }
+
+            const html = await response.text();
+            const numbers = [];
+
+            // 尝试解析HTML表格
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const tables = doc.querySelectorAll('table');
+
+            tables.forEach(table => {
+                const headers = table.querySelectorAll('th, thead td');
+                let colIndex = -1;
+                headers.forEach((h, i) => {
+                    if (h.textContent.trim().toLowerCase().includes(columnName.toLowerCase())) {
+                        colIndex = i;
+                    }
+                });
+                if (colIndex >= 0) {
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > colIndex) {
+                            const num = parseFloat(cells[colIndex].textContent.replace(/[^\d.-]/g, ''));
+                            if (!isNaN(num) && num >= 0 && num <= 100) numbers.push(num);
+                        }
+                    });
+                }
+            });
+
+            // 尝试从script标签提取JSON
+            if (numbers.length === 0) {
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const match = script.textContent.match(/window\.__INITIAL_STATE__\s*=\s*({[\s\S]*?});/);
+                    if (match) {
+                        try {
+                            const data = JSON.parse(match[1]);
+                            const extracted = extractFromJSON(data, columnName);
+                            numbers.push(...extracted);
+                        } catch (e) {}
+                    }
+                });
+            }
+
+            const avg = calcAverage(numbers);
+            displayResult('apiResult', numbers, avg);
+            displayTable('apiTable', numbers);
+
+            if (numbers.length === 0) {
+                resultEl.className = 'result-box show result-error';
+                resultEl.textContent = '❌ 无法自动读取。建议使用方案一（复制粘贴），将数据直接粘贴解析。';
+            }
+        } catch (err) {
+            resultEl.className = 'result-box show result-error';
+            resultEl.textContent = `❌ 读取失败：${err.message}。这是正常的跨域限制，请使用方案一（复制粘贴）。`;
+            document.getElementById('apiTable').classList.remove('show');
         }
-      }
-      renderAll();
+    }
+
+    function extractFromJSON(obj, columnName) {
+        const numbers = [];
+        if (!obj) return numbers;
+        if (Array.isArray(obj)) {
+            obj.forEach(item => {
+                if (typeof item === 'object') {
+                    for (const key in item) {
+                        if (key.toLowerCase().includes(columnName.toLowerCase())) {
+                            const num = parseFloat(item[key]);
+                            if (!isNaN(num) && num >= 0 && num <= 100) numbers.push(num);
+                        }
+                    }
+                    numbers.push(...extractFromJSON(item, columnName));
+                }
+            });
+        } else if (typeof obj === 'object') {
+            for (const key in obj) {
+                if (key.toLowerCase().includes(columnName.toLowerCase())) {
+                    const num = parseFloat(obj[key]);
+                    if (!isNaN(num) && num >= 0 && num <= 100) numbers.push(num);
+                }
+                numbers.push(...extractFromJSON(obj[key], columnName));
+            }
+        }
+        return numbers;
+    }
+
+    // ==================== 完整评分工具 ====================
+    let toolPlayers = [];
+    let toolNextId = 1;
+    let toolJudgeWeight = 60;
+    let toolCollectWeight = 40;
+
+    const TOOL_DEMO = [
+        {
+            name: '选手 A',
+            judges: [{ name: '评委1', score: '92.5' }, { name: '评委2', score: '88.0' }, { name: '评委3', score: '94.0' }],
+            csvData: '', parsedAvg: null, manualAvg: null
+        },
+        {
+            name: '选手 B',
+            judges: [{ name: '评委1', score: '95.0' }, { name: '评委2', score: '91.5' }],
+            csvData: '', parsedAvg: 91.0, manualAvg: null
+        }
+    ];
+
+    function toolGetJudgeAvg(judges) {
+        const valid = judges.map(j => parseFloat(j.score)).filter(s => !isNaN(s) && s >= 0 && s <= 100);
+        return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+    }
+
+    function toolGetCollectAvg(p) {
+        if (p.manualAvg !== null && p.manualAvg !== undefined && p.manualAvg !== '') return parseFloat(p.manualAvg);
+        if (p.parsedAvg !== null && p.parsedAvg !== undefined) return p.parsedAvg;
+        return null;
+    }
+
+    function toolCalcFinal(p) {
+        const ja = toolGetJudgeAvg(p.judges);
+        const ca = toolGetCollectAvg(p);
+        const total = toolJudgeWeight + toolCollectWeight || 1;
+        let score = 0, valid = false;
+        if (ja !== null) { score += ja * (toolJudgeWeight / total); valid = true; }
+        if (ca !== null) { score += ca * (toolCollectWeight / total); valid = true; }
+        return valid ? score : null;
+    }
+
+    function toolSort() {
+        toolPlayers.sort((a, b) => {
+            const sa = toolCalcFinal(a); const sb = toolCalcFinal(b);
+            if (sa === null && sb === null) return a.id - b.id;
+            if (sa === null) return 1; if (sb === null) return -1;
+            return sb - sa;
+        });
+    }
+
+    function renderToolAll() {
+        toolSort();
+        const area = document.getElementById('toolContestants');
+        area.innerHTML = '';
+
+        toolPlayers.forEach((p, idx) => {
+            const ja = toolGetJudgeAvg(p.judges);
+            const ca = toolGetCollectAvg(p);
+            const final = toolCalcFinal(p);
+            const rank = idx + 1;
+
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.innerHTML = `
+                <div class="player-header">
+                    <span class="player-name" contenteditable data-tool-id="${p.id}">${escapeHtml(p.name)}</span>
+                    <span class="player-rank">第 ${rank} 名</span>
+                    <div style="display:flex;gap:4px;">
+                        <button class="btn btn-outline" style="font-size:0.65rem;padding:2px 8px;" data-tool-add="${p.id}">+评委</button>
+                        <button class="btn btn-outline" style="font-size:0.65rem;padding:2px 8px;color:#ef4444;" data-tool-del="${p.id}">删除</button>
+                    </div>
+                </div>
+                <div class="judge-row">
+                    ${p.judges.map((j, i) => `
+                        <div class="judge-chip">
+                            <span contenteditable data-tool-cid="${p.id}" data-tool-jid="${i}">${escapeHtml(j.name)}</span>
+                            <input value="${j.score}" data-tool-cid="${p.id}" data-tool-jid="${i}" class="tool-score-inp">
+                            <button data-tool-cid="${p.id}" data-tool-jid="${i}" class="tool-del-judge" style="border:none;background:none;color:#ef4444;cursor:pointer;">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="data-row">
+                    <textarea data-tool-csv="${p.id}" placeholder="在此粘贴从在线表格复制的数据...">${escapeHtml(p.csvData||'')}</textarea>
+                    <button class="btn btn-success" style="font-size:0.65rem;padding:3px 8px;" data-tool-parse="${p.id}">解析</button>
+                    <input type="number" value="${p.manualAvg||''}" data-tool-manual="${p.id}" placeholder="手动均分" step="0.1" style="width:70px;border:1px solid var(--border);border-radius:4px;padding:3px 5px;font-size:0.7rem;">
+                    <span style="font-size:0.7rem;">均分: ${ca?.toFixed(2)||'无'}</span>
+                </div>
+                <div class="summary-row">
+                    <span>评委均分: ${ja?.toFixed(2)||'无'}</span>
+                    <span>收集表均分: ${ca?.toFixed(2)||'无'}</span>
+                    <span class="final-score">总分 ${final?.toFixed(2)||'无'}</span>
+                </div>
+            `;
+            area.appendChild(card);
+        });
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
+    }
+
+    function applyToolWeights() {
+        toolJudgeWeight = parseInt(document.getElementById('toolJudgeWeight').value) || 60;
+        toolCollectWeight = parseInt(document.getElementById('toolCollectWeight').value) || 40;
+        renderToolAll();
+    }
+
+    function addToolPlayer() {
+        toolPlayers.push({
+            id: toolNextId++,
+            name: '新选手',
+            judges: [{ name: '评委1', score: '80' }, { name: '评委2', score: '80' }],
+            csvData: '', parsedAvg: null, manualAvg: null
+        });
+        renderToolAll();
+    }
+
+    function resetToolDemo() {
+        toolPlayers = TOOL_DEMO.map((d, i) => ({ id: i + 1, ...d, judges: d.judges.map(j => ({ ...j })) }));
+        toolNextId = toolPlayers.length + 1;
+        renderToolAll();
+    }
+
+    // 事件委托
+    document.addEventListener('click', e => {
+        const t = e.target;
+        // 工具区：添加评委
+        if (t.dataset.toolAdd) {
+            const p = toolPlayers.find(p => p.id === parseInt(t.dataset.toolAdd));
+            if (p) { p.judges.push({ name: `评委${p.judges.length+1}`, score: '80' }); renderToolAll(); }
+        }
+        // 工具区：删除选手
+        if (t.dataset.toolDel) {
+            if (toolPlayers.length <= 1) return alert('至少保留一名选手');
+            toolPlayers = toolPlayers.filter(p => p.id !== parseInt(t.dataset.toolDel));
+            renderToolAll();
+        }
+        // 工具区：删除评委
+        if (t.classList.contains('tool-del-judge')) {
+            const p = toolPlayers.find(p => p.id === parseInt(t.dataset.toolCid));
+            if (p && p.judges.length > 1) { p.judges.splice(parseInt(t.dataset.toolJid), 1); renderToolAll(); }
+            else alert('至少保留一位评委');
+        }
+        // 工具区：解析CSV
+        if (t.dataset.toolParse) {
+            const p = toolPlayers.find(p => p.id === parseInt(t.dataset.toolParse));
+            if (p) {
+                const numbers = extractNumbers(p.csvData || '');
+                if (numbers.length > 0) {
+                    p.parsedAvg = calcAverage(numbers);
+                    alert(`解析成功！提取 ${numbers.length} 个数值，平均分：${p.parsedAvg.toFixed(2)}`);
+                } else {
+                    alert('未找到有效数值（0-100范围内）');
+                }
+                renderToolAll();
+            }
+        }
     });
 
-    // 按钮事件
-    document.getElementById('applyWeightBtn').addEventListener('click', () => {
-      judgeWeight = Math.min(100, Math.max(0, parseInt(document.getElementById('judgeWeightInput').value)||60));
-      collectWeight = Math.min(100, Math.max(0, parseInt(document.getElementById('collectWeightInput').value)||40));
-      renderAll();
+    document.addEventListener('input', e => {
+        if (e.target.classList.contains('tool-score-inp')) {
+            const p = toolPlayers.find(p => p.id === parseInt(e.target.dataset.toolCid));
+            if (p) { p.judges[parseInt(e.target.dataset.toolJid)].score = e.target.value; renderToolAll(); }
+        }
     });
-    
-    document.getElementById('addContestantBtn').addEventListener('click', () => {
-      contestants.push({ 
-        id: nextId++, 
-        name: `新选手`, 
-        judges: [
-          { judgeName:'评委1', score:'80' },
-          { judgeName:'评委2', score:'80' }
-        ], 
-        collectUrl:'', 
-        collectColumn:'分数',
-        manualCollectAvg: null,
-        fetchedAvg: null 
-      });
-      renderAll();
+
+    document.addEventListener('blur', e => {
+        if (e.target.dataset.toolCsv) {
+            const p = toolPlayers.find(p => p.id === parseInt(e.target.dataset.toolCsv));
+            if (p) p.csvData = e.target.value;
+        }
+        if (e.target.dataset.toolManual) {
+            const p = toolPlayers.find(p => p.id === parseInt(e.target.dataset.toolManual));
+            if (p) p.manualAvg = e.target.value || null;
+        }
+        renderToolAll();
     });
-    
-    document.getElementById('globalRecalcBtn').addEventListener('click', renderAll);
-    
-    document.getElementById('resetDemoBtn').addEventListener('click', () => {
-      contestants = []; 
-      nextId = 1;
-      DEMO.contestants.forEach(d => contestants.push({ 
-        id: nextId++, 
-        ...d, 
-        judges: d.judges.map(j=>({...j})), 
-        fetchedAvg: null 
-      }));
-      renderAll();
-    });
-    
+
     // 初始化
-    document.getElementById('resetDemoBtn').click();
-  })();
+    resetToolDemo();
 </script>
 </body>
 </html>
